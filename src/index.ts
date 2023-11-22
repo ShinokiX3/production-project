@@ -1,3 +1,5 @@
-import foo from './test';
+import { foo } from './test';
 
-console.log(foo(999));
+foo(123);
+
+document.body.innerHTML = `<div style="background: red">HELLO WORLD!</div>`;

@@ -4,6 +4,7 @@ import { buildLoaders } from './buildLoaders';
 import { buildPlugins } from './buildPlugins';
 import { buildResolvers } from './buildResolvers';
 import { BuildOptions } from './types/config';
+import { buildDevServer } from './buildDevServer';
 
 export function buildWebpackConfig(
 	options: BuildOptions
@@ -14,7 +15,7 @@ export function buildWebpackConfig(
 		mode: mode,
 		entry: paths.entry,
 		output: {
-			filename: '[name].[contenthash].ts',
+			filename: '[name].[contenthash].js',
 			path: paths.build,
 			clean: true,
 		},
@@ -23,5 +24,7 @@ export function buildWebpackConfig(
 			rules: buildLoaders(),
 		},
 		resolve: buildResolvers(),
+		devtool: 'inline-source-map',
+		devServer: buildDevServer(options),
 	};
 }

@@ -7,9 +7,9 @@ export function buildPlugins({
 	paths,
 }: BuildOptions): webpack.WebpackPluginInstance[] {
 	return [
-		new webpack.ProgressPlugin(),
 		new HTMLWebpackPlugin({
 			template: paths.html,
 		}),
+		new webpack.ProgressPlugin(),
 	];
 }

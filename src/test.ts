@@ -1,3 +1,4 @@
-export default function foo(num: number): string {
+export function foo(num: number): string {
+	console.log(num + 'text');
 	return String(num);
 }
