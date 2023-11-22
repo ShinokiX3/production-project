@@ -12,5 +12,10 @@
 		// allow default import from node.js packgs
 		"allowSyntheticDefaultImports": true,
 		"types": ["node"]
+	},
+	"ts-node": {
+		"compilerOptions": {
+			"module": "CommonJS"
+		}
 	}
 }
