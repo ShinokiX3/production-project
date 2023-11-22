@@ -4,7 +4,7 @@ const webpack = require('webpack');
 
 module.exports = {
 	mode: 'development',
-	entry: path.resolve(__dirname, 'src', 'index.js'),
+	entry: path.resolve(__dirname, 'src', 'index.ts'),
 	output: {
 		filename: '[name].[contenthash].ts',
 		path: path.resolve(__dirname, 'build'),
