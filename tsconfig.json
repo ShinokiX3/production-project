@@ -11,7 +11,8 @@
 		"esModuleInterop": true,
 		// allow default import from node.js packgs
 		"allowSyntheticDefaultImports": true,
-		"types": ["node"]
+		"types": ["node"],
+		"baseUrl": "."
 	},
 	"ts-node": {
 		"compilerOptions": {
