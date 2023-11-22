@@ -2,7 +2,7 @@ import path from 'path';
 import webpack from 'webpack';
 import HTMLWebpackPlugin from 'html-webpack-plugin';
 
-const config = {
+const config: webpack.Configuration = {
 	mode: 'development',
 	entry: path.resolve(__dirname, 'src', 'index.ts'),
 	output: {
