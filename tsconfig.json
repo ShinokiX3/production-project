@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"outDir": "./dist",
+		"noImplicitAny": true,
+		"module": "es6",
+		"target": "es5",
+		"jsx": "react",
+		"allowJs": true,
+		"moduleResolution": "node",
+		// working with packages like js usual import
+		"esModuleInterop": true,
+		// allow default import from node.js packgs
+		"allowSyntheticDefaultImports": true,
+		"types": ["node"]
+	}
+}
