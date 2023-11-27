@@ -9,6 +9,8 @@
 		"build:dev": "webpack --env mode=development",
 		"lint:ts": "npx eslint **/*.{ts,tsx}",
 		"lint:ts:fix": "npx eslint **/*.{ts,tsx} --fix",
+		"lint:scss": "npx stylelint **/*.scss",
+		"lint:scss:fix": "npx stylelint **/*.scss --fix",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"devDependencies": {

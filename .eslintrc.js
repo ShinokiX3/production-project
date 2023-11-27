@@ -8,6 +8,7 @@ module.exports = {
 		'airbnb',
 		'plugin:@typescript-eslint/eslint-recommended',
 		'plugin:@typescript-eslint/recommended',
+		'plugin:i18next/recommended'
 	],
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
@@ -17,7 +18,7 @@ module.exports = {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 	},
-	plugins: ['react', '@typescript-eslint'],
+	plugins: ['react', '@typescript-eslint', 'i18next'],
 	rules: {
 		indent: [2, 'tab'],
 		'no-tabs': 0,
@@ -57,6 +58,8 @@ module.exports = {
 
 		'react/jsx-props-no-spreading': 'warn',
 		'react/prop-types': 'off',
+
+		'i18next/no-literal-string': ['error', { markupOnly: true }]
 	},
 	globals: {
 		__IS_DEV__: true,
