@@ -5,6 +5,6 @@ interface titleProps {
 	className?: string;
 }
 
-export const title = ({ className }: titleProps) => {
-	return <div className={classNames(cls.title, {}, [className])}></div>;
-};
+export const title = ({ className }: titleProps) => (
+	<div className={classNames(cls.title, {}, [className])} />
+);
