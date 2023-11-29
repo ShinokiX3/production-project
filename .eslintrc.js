@@ -9,7 +9,8 @@ module.exports = {
 		'airbnb',
 		'plugin:@typescript-eslint/eslint-recommended',
 		'plugin:@typescript-eslint/recommended',
-		'plugin:i18next/recommended'
+		'plugin:i18next/recommended',
+		'plugin:storybook/recommended'
 	],
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
@@ -66,7 +67,7 @@ module.exports = {
 			'error',
 			{
 				markupOnly: true,
-				ignoreAttribute: ['data-testid']
+				ignoreAttribute: ['data-testid', 'to']
 			}
 		],
 
