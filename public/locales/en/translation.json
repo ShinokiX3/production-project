@@ -5,5 +5,8 @@
 	"Страница не найдена": "Page not found",
 	"Произошла ошибка": "Error occur",
 	"Обновить страницу": "Reload page",
-	"Выбросить ошибку": "Throw new error"
+	"Выбросить ошибку": "Throw new error",
+	"Переключить": "Toggle",
+	"Главная": "Main",
+	"О проекте": "About"
 }
