@@ -5,8 +5,8 @@
 
 # testing
 /coverage
-./loki/report.json
-./loki/report.html
+/.loki/report.json
+/.loki/report.html
 
 # production
 /build
