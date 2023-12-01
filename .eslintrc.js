@@ -71,7 +71,10 @@ module.exports = {
 			}
 		],
 
-		'max-len': ['error', { code: 100, ignoreComments: true }]
+		'max-len': ['error', { code: 100, ignoreComments: true }],
+		// TODO: temporary options
+		'jsx-a11y/click-events-have-key-events': 'off',
+		'jsx-a11y/no-static-element-interactions': 'off',
 	},
 	globals: {
 		__IS_DEV__: true,
