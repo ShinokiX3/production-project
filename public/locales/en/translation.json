@@ -10,5 +10,10 @@
 	"Главная": "Main",
 	"О проекте": "About",
 	"Короткий язык": "En",
-	"Войти": "Sign In"
+	"Войти": "Sign In",
+	"Введите имя": "Name",
+	"Введите пароль": "Password",
+	"Форма авторизации": "Authorization form",
+	"Неверный логин или пароль": "Incorrect login or password",
+	"Выйти": "Sign out"
 }
