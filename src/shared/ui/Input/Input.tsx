@@ -1,29 +1,39 @@
-import { classNames } from 'shared/lib/classNames/classNames';
+import { Mods, classNames } from 'shared/lib/classNames/classNames';
 import {
 	MutableRefObject,
 	memo, useEffect, useRef, useState
 } from 'react';
 import cls from './Input.module.scss';
 
-type HTMLInputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>
+type HTMLInputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'readonly'>
 
 interface InputProps extends HTMLInputProps {
     className?: string;
     type?: string;
-    value?: string;
+    value?: string | number;
     onChange?: (value: string) => void;
     placeholder?: string;
 	autofocus?: boolean;
+	readonly?: boolean;
 }
 
 export const Input = memo((props: InputProps) => {
 	const {
-		className, type = 'text', value, onChange, placeholder, autofocus, ...otherProps
+		className,
+		type = 'text',
+		value,
+		onChange,
+		placeholder,
+		autofocus,
+		readonly,
+		...otherProps
 	} = props;
 
+	const ref = useRef() as MutableRefObject<HTMLInputElement>;
 	const [isFocused, setIsFocused] = useState<boolean>(false);
 	const [caretPosition, setCaretPosition] = useState(0);
-	const ref = useRef() as MutableRefObject<HTMLInputElement>;
+
+	const isCaretVisible = isFocused && !readonly;
 
 	useEffect(() => {
 		if (autofocus) setIsFocused(true);
@@ -39,8 +49,12 @@ export const Input = memo((props: InputProps) => {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onSelect = (e: any) => setCaretPosition(e?.target?.selectionStart || 0);
 
+	const mods: Mods = {
+		[cls.readonly]: readonly,
+	};
+
 	return (
-		<div className={classNames(cls.InputWrapper, {}, [className])}>
+		<div className={classNames(cls.InputWrapper, mods, [className])}>
 			{placeholder
 				? (
 					<div className={cls.placeholder}>
@@ -58,9 +72,10 @@ export const Input = memo((props: InputProps) => {
 					onFocus={onFocus}
 					onBlur={onBlur}
 					onSelect={onSelect}
+					readOnly={readonly}
 					{...otherProps}
 				/>
-				{isFocused
+				{isCaretVisible
 					? (
 						<span
 							className={cls.caret}

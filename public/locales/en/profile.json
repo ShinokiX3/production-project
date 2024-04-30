@@ -1,5 +1,8 @@
 {
   "Профиль": "Profile",
   "Редактировать": "Edit",
-  "Ваше имя": "Ваше имя"
+  "Ваше имя": "Ваше имя",
+  "profile.Error occured": "Error occured",
+  "profile.Try to restart the page": "Try to restart the page",
+  "Cancel": "Cancel"
 }
