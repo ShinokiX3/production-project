@@ -1,0 +1,34 @@
+{
+    "name": "React TSX Component",
+    "files": [
+        {
+            "name": "${TM_FILENAME_BASE}/$TM_FILENAME_BASE.tsx",
+            "content": [
+                "import { classNames } from 'shared/lib/classNames/classNames';",
+                "import cls from './${TM_FILENAME_BASE}.module.scss';",
+                "",
+                "interface ${TM_FILENAME_BASE}Props {",
+                "    className?: string;",
+                "}",
+                "",
+                "export const ${TM_FILENAME_BASE} = ({ className }: ${TM_FILENAME_BASE}Props) => {",
+                "    return (",
+                "        <div className={classNames(cls.${TM_FILENAME_BASE}, {}, [className])}>",
+                "            ",
+                "        </div>",
+                "    );",
+                "};"
+            ]
+        },
+        {
+            "name": "${TM_FILENAME_BASE}/$TM_FILENAME_BASE.module.scss",
+            "content": [
+                ".${TM_FILENAME_BASE} {}"
+            ]
+        },
+        {
+            "name": "${TM_FILENAME_BASE}/$TM_FILENAME_BASE.test.ts",
+            "content": []
+        }
+    ]
+}

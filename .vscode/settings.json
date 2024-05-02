@@ -6,5 +6,74 @@
 		"coverage/lcov-report/src/shared/config/i18n"
 	],
 	"typescript.tsdk": "node_modules\\typescript\\lib",
-	"i18n-ally.keystyle": "flat"
+	"i18n-ally.keystyle": "flat",
+	"module-templates.engine": "handlebars",
+	"module-templates.templates": {
+		"react-tsx-component": {
+		"displayName": "React TSX Component",
+		"defaultPath": "src/components",
+		"questions": {
+			"name": "Component name",
+		},
+		"files": [
+			{
+			"name": "{{pascal name}}/{{pascal name}}.tsx",
+			"content": [
+				"import { classNames } from 'shared/lib/classNames/classNames';",
+				"import cls from './{{pascal name}}.module.scss';",
+				"",
+				"interface {{pascal name}}Props {",
+				"    className?: string;",
+				"}",
+				"",
+				"export const {{pascal name}} = ({ className }: {{pascal name}}Props) => {",
+				"    return (",
+				"        <div className={classNames(cls.{{pascal name}}, {}, [className])}>",
+				"            ",
+				"        </div>",
+				"    );",
+				"};"
+			]
+			},
+			{
+			"name": "{{pascal name}}/{{pascal name}}.module.scss",
+			"content": [
+				".{{pascal name}} {",
+				"    ",
+				"}"
+			]
+			},
+			{
+			"name": "{{pascal name}}/{{pascal name}}.stories.tsx",
+			"content": [
+				"import { ComponentStory, ComponentMeta } from '@storybook/react';",
+				"import { {{pascal name}} } from './{{pascal name}}';",
+				"",
+				"export default {",
+				"    title: 'dir/{{pascal name}}',",
+				"    component: {{pascal name}},",
+				"    argTypes: {",
+				"        backgroundColor: { control: 'color' },",
+				"    },",
+				"} as ComponentMeta<typeof {{pascal name}}>;",
+				"",
+				"const Template: ComponentStory<typeof {{pascal name}}> = (args) => <{{pascal name}} {...args} />;",
+				"",
+				"export const Primary = Template.bind({});",
+				"Primary.args = {};"
+			]
+			},
+			{
+			"name": "{{pascal name}}/{{pascal name}}.test.ts",
+			"content": [
+				"import {{pascal name}} from './{{pascal name}}';",
+				"",
+				"describe('{{pascal name}}', () => {",
+				"    ",
+				"});"
+			]
+			}
+		]
+		}
+	}
 }
