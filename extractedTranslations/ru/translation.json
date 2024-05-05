@@ -1,5 +1,9 @@
 {
+  "Article not found": "Article not found",
   "Error occured": "Error occured",
+  "Error occured while loading article": {
+    "": ""
+  },
   "Profile page": "Profile page",
   "Try to restart the page": "Try to restart the page",
   "Ваш аватар (ссылка)": "Ваш аватар (ссылка)",

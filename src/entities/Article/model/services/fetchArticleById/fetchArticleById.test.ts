@@ -1,9 +1,8 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
-import { Article, ArticleBlockType, ArticleType } from 'entities/Article/model/types/article';
-import { StoreDecorator } from 'shared/config/storybook/StoreDecorator';
-import ArticleDetailsPage from './ArticleDetailsPage';
+import { TestAsyncThunk } from 'shared/lib/tests/TestAsyncThunk/TestAsyncThunk';
+import { fetchArticleById } from './fetchArticleById';
+import { Article, ArticleBlockType, ArticleType } from '../../types/article';
 
-const article: Article = {
+const data: Article = {
 	id: '1',
 	title: 'Javascript news',
 	subtitle: 'Что нового в JS за 2022 год?',
@@ -73,20 +72,22 @@ const article: Article = {
 	]
 };
 
-export default {
-	title: 'pages/ArticleDetailsPage',
-	component: ArticleDetailsPage,
-	argTypes: {
-		backgroundColor: { control: 'color' },
-	},
-} as ComponentMeta<typeof ArticleDetailsPage>;
+describe('fetchArticleById.test', () => {
+	test('success', async () => {
+		const thunk = new TestAsyncThunk(fetchArticleById);
+		thunk.api.get.mockReturnValue(Promise.resolve({ data }));
+		const result = await thunk.callThunk('1');
 
-const Template: ComponentStory<typeof ArticleDetailsPage> = (args) => <ArticleDetailsPage {...args} />;
+		expect(thunk.api.get).toHaveBeenCalled();
+		expect(result.meta.requestStatus).toBe('fulfilled');
+		expect(result.payload).toEqual(data);
+	});
 
-export const Normal = Template.bind({});
-Normal.args = {};
-Normal.decorators = [StoreDecorator({
-	articleDetails: {
-		data: article
-	}
-})];
+	test('error', async () => {
+		const thunk = new TestAsyncThunk(fetchArticleById);
+		thunk.api.get.mockReturnValue(Promise.resolve({ status: 403 }));
+		const result = await thunk.callThunk('');
+
+		expect(result.meta.requestStatus).toBe('rejected');
+	});
+});

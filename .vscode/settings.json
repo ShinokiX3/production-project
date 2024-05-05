@@ -19,6 +19,7 @@
 			{
 			"name": "{{pascal name}}/{{pascal name}}.tsx",
 			"content": [
+				"import { memo } from 'react'",
 				"import { classNames } from 'shared/lib/classNames/classNames';",
 				"import cls from './{{pascal name}}.module.scss';",
 				"",
@@ -26,13 +27,15 @@
 				"    className?: string;",
 				"}",
 				"",
-				"export const {{pascal name}} = ({ className }: {{pascal name}}Props) => {",
+				"export const {{pascal name}} = memo((props: {{pascal name}}Props) => {",
+				"    const { className } = props;",
+				"",
 				"    return (",
 				"        <div className={classNames(cls.{{pascal name}}, {}, [className])}>",
 				"            ",
 				"        </div>",
 				"    );",
-				"};"
+				"});"
 			]
 			},
 			{
@@ -59,8 +62,8 @@
 				"",
 				"const Template: ComponentStory<typeof {{pascal name}}> = (args) => <{{pascal name}} {...args} />;",
 				"",
-				"export const Primary = Template.bind({});",
-				"Primary.args = {};"
+				"export const Normal = Template.bind({});",
+				"Normal.args = {};"
 			]
 			},
 			{

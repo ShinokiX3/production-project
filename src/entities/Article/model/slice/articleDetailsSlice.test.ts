@@ -1,9 +1,9 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
-import { Article, ArticleBlockType, ArticleType } from 'entities/Article/model/types/article';
-import { StoreDecorator } from 'shared/config/storybook/StoreDecorator';
-import ArticleDetailsPage from './ArticleDetailsPage';
+import { fetchArticleById } from '../services/fetchArticleById/fetchArticleById';
+import { articleDetailsReducer } from './articleDetailsSlice';
+import { ArticleDetailsSchema } from '../types/articleDetailsSchema';
+import { Article, ArticleBlockType, ArticleType } from '../types/article';
 
-const article: Article = {
+const data: Article = {
 	id: '1',
 	title: 'Javascript news',
 	subtitle: 'Что нового в JS за 2022 год?',
@@ -73,20 +73,32 @@ const article: Article = {
 	]
 };
 
-export default {
-	title: 'pages/ArticleDetailsPage',
-	component: ArticleDetailsPage,
-	argTypes: {
-		backgroundColor: { control: 'color' },
-	},
-} as ComponentMeta<typeof ArticleDetailsPage>;
+describe('articleDetailsSlice.test', () => {
+	test('test fetching article details service pending', () => {
+		const state: DeepPartial<ArticleDetailsSchema> = {
+			isLoading: false,
+		};
+		expect(articleDetailsReducer(
+            state as ArticleDetailsSchema,
+            fetchArticleById.pending
+		)).toStrictEqual({
+			isLoading: true,
+			error: undefined,
+		});
+	});
 
-const Template: ComponentStory<typeof ArticleDetailsPage> = (args) => <ArticleDetailsPage {...args} />;
-
-export const Normal = Template.bind({});
-Normal.args = {};
-Normal.decorators = [StoreDecorator({
-	articleDetails: {
-		data: article
-	}
-})];
+	test('test fetching article details service fulfilled', () => {
+		const state: DeepPartial<ArticleDetailsSchema> = {
+			isLoading: true,
+			error: undefined,
+		};
+		expect(articleDetailsReducer(
+            state as ArticleDetailsSchema,
+            fetchArticleById.fulfilled(data, '', '')
+		)).toStrictEqual({
+			isLoading: false,
+			error: undefined,
+			data,
+		});
+	});
+});
