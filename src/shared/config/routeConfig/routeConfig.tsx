@@ -6,7 +6,7 @@ import { RouteProps } from 'react-router-dom';
 
 // Temporary solution for hiding paths
 
-type AppRoutesProps = RouteProps & {
+export type AppRoutesProps = RouteProps & {
 	authOnly?: boolean;
 }
 
