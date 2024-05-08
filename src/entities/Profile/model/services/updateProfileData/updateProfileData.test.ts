@@ -12,6 +12,7 @@ const data = {
 	first: 'asf',
 	city: 'Kiev',
 	currency: Currency.UAH,
+	id: '1',
 };
 
 describe('updateProfileData.test', () => {
