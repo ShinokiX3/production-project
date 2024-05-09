@@ -80,6 +80,8 @@ module.exports = {
 		'react-hooks/exhaustive-deps': 'error',
 		'no-param-reassign': 'off',
 		'no-undef': 'off',
+		'jsx-props-no-spreading': 'off',
+		'react/no-array-index-key': 'off'
 	},
 	globals: {
 		__IS_DEV__: true,

@@ -6,10 +6,13 @@ export {
 	ArticleDetails
 } from './ui/ArticleDetails/ArticleDetails';
 
-export type {
-	Article
+export {
+	Article,
+	ArticleView
 } from './model/types/article';
 
 export type {
 	articleDetailsSlice
 } from './model/slice/articleDetailsSlice';
+
+export { ArticleList } from './ui/ArticleList/ArticleList';

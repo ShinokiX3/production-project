@@ -1,12 +1,20 @@
 {
   "Article not found": "Article not found",
   "ArticlesPage": "ArticlesPage",
+  "Back to articles": "Back to articles",
   "Comments": "Comments",
   "Error occured": "Error occured",
   "Error occured while loading article": {
     "": ""
   },
   "Profile page": "Profile page",
+  "Read more": {
+    "": {
+      "": {
+        "": ""
+      }
+    }
+  },
   "Send": "Send",
   "There are not any comments here!": "There are not any comments here!",
   "Try to restart the page": "Try to restart the page",
