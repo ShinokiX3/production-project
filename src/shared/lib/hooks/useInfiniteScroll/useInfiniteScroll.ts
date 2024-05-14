@@ -11,7 +11,7 @@ export const useInfiniteScroll = ({ callback, triggerRef, wrapperRef }: UseInfin
 
 	useEffect(() => {
 		const wrapperElement = wrapperRef.current;
-		const triggerElement = wrapperRef.current;
+		const triggerElement = triggerRef.current;
 
 		if (callback) {
 			const options = {
