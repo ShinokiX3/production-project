@@ -18,6 +18,8 @@ import {
 	getArticlesPageView
 } from 'pages/ArticlesPage/model/selectors/articlesPageSelectors';
 import { ArticleViewSelector } from 'features/ArticleViewSelector/ui/ArticleViewSelector';
+import { Page } from 'shared/ui/Page/Page';
+import { fetchNextArticlesPage } from 'pages/ArticlesPage/model/services/fetchNextArticlesPage/fetchNextArticlesPage';
 import cls from './ArticlesPage.module.scss';
 
 interface ArticlesPageProps {
@@ -38,9 +40,15 @@ const ArticlesPage = ({ className }: ArticlesPageProps) => {
 	const { t } = useTranslation();
 
 	useInitialEffect(() => {
-		dispatch(fetchArticlesList());
 		dispatch(articlesPageActions.initState());
+		dispatch(fetchArticlesList({
+			page: 1
+		}));
 	});
+
+	const onLoadNextPart = useCallback(() => {
+		dispatch(fetchNextArticlesPage());
+	}, [dispatch]);
 
 	const onChangeView = useCallback((view: ArticleView) => {
 		dispatch(articlesPageActions.setVIew(view));
@@ -48,14 +56,14 @@ const ArticlesPage = ({ className }: ArticlesPageProps) => {
 
 	return (
 		<DynamicModuleLoader reducers={reducers}>
-			<div className={classNames(cls.ArticlePage, {}, [className])}>
+			<Page onScrollEnd={onLoadNextPart} className={classNames(cls.ArticlePage, {}, [className])}>
 				<ArticleViewSelector view={view} onViewClick={onChangeView} />
 				<ArticleList
 					isLoading={isLoading}
 					view={view}
 					articles={articles}
 				/>
-			</div>
+			</Page>
 		</DynamicModuleLoader>
 	);
 };

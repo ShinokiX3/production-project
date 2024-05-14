@@ -23,6 +23,7 @@ import {
 } from 'pages/ArticleDetailsPage/model/services/addCommentForArticle/addCommentForArticle';
 import { Button, ThemeButton } from 'shared/ui/Button/Button';
 import { RoutePath } from 'shared/config/routeConfig/routeConfig';
+import { Page } from 'shared/ui/Page/Page';
 import cls from './ArticleDetailsPage.module.scss';
 
 interface ArticleDetailsPageProps {
@@ -57,15 +58,15 @@ const ArticleDetailsPage = ({ className }: ArticleDetailsPageProps) => {
 
 	if (!id) {
 		return (
-			<div className={classNames(cls.ArticleDetailsPage, {}, [className])}>
+			<Page className={classNames(cls.ArticleDetailsPage, {}, [className])}>
 				{t('Article not found')}
-			</div>
+			</Page>
 		);
 	}
 
 	return (
 		<DynamicModuleLoader reducers={reducers} removeAfterUnmount>
-			<div className={classNames(cls.ArticleDetailsPage, {}, [className])}>
+			<Page className={classNames(cls.ArticleDetailsPage, {}, [className])}>
 				<Button theme={ThemeButton.OUTLINE} onClick={onBackToList}>
 					{t('Back to articles')}
 				</Button>
@@ -76,7 +77,7 @@ const ArticleDetailsPage = ({ className }: ArticleDetailsPageProps) => {
 					isLoading={commentsIsLoading}
 					comments={comments}
 				/>
-			</div>
+			</Page>
 		</DynamicModuleLoader>
 	);
 };
