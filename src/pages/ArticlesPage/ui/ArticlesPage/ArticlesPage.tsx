@@ -17,7 +17,7 @@ import {
 	getArticlesPageView
 } from 'pages/ArticlesPage/model/selectors/articlesPageSelectors';
 import { ArticleViewSelector } from 'features/ArticleViewSelector/ui/ArticleViewSelector';
-import { Page } from 'shared/ui/Page/Page';
+import { Page } from 'widgets/Page/ui/Page';
 import { fetchNextArticlesPage } from 'pages/ArticlesPage/model/services/fetchNextArticlesPage/fetchNextArticlesPage';
 import { initArticlesPage } from 'pages/ArticlesPage/model/services/initArticlesPage/initArticlesPage';
 import cls from './ArticlesPage.module.scss';
@@ -52,7 +52,7 @@ const ArticlesPage = ({ className }: ArticlesPageProps) => {
 	}, [dispatch]);
 
 	return (
-		<DynamicModuleLoader reducers={reducers}>
+		<DynamicModuleLoader reducers={reducers} removeAfterUnmount={false}>
 			<Page onScrollEnd={onLoadNextPart} className={classNames(cls.ArticlePage, {}, [className])}>
 				<ArticleViewSelector
 					view={view}
