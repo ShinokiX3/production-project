@@ -1,5 +1,6 @@
 {
   "Article not found": "Article not found",
+  "Articles not found": "Articles not found",
   "ArticlesPage": "ArticlesPage",
   "Back to articles": "Back to articles",
   "Comments": "Comments",
@@ -15,9 +16,17 @@
       }
     }
   },
+  "Search": "Search",
   "Send": "Send",
+  "Sort for": "Sort for",
   "There are not any comments here!": "There are not any comments here!",
   "Try to restart the page": "Try to restart the page",
+  "ascending": "ascending",
+  "created at": "created at",
+  "descending": "descending",
+  "for": "for",
+  "title": "title",
+  "views": "views",
   "Ваш аватар (ссылка)": "Ваш аватар (ссылка)",
   "Ваш возраст": "Ваш возраст",
   "Ваш город": "Ваш город",
