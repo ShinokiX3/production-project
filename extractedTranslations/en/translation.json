@@ -1,13 +1,23 @@
 {
   "Article not found": "Article not found",
+  "Articles create": "Articles create",
+  "Articles edit": "Articles edit",
+  "Articles edit ": "Articles edit ",
   "Articles not found": "",
   "ArticlesPage": "ArticlesPage",
   "Back to articles": "Back to articles",
   "Comments": "Comments",
+  "Create article": "Create article",
+  "Edit article": "Edit article",
   "Error occured": "Error occured",
   "Error occured while loading article": {
     "": ""
   },
+  "Full prod": "Full prod",
+  "Full prod appl": "Full prod appl",
+  "Full prod application": "Full prod application",
+  "Pages create": "Pages create",
+  "Pages edit": "Pages edit",
   "Profile page": "Profile page",
   "Read more": {
     "": {

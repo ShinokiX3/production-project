@@ -35,6 +35,7 @@ import {
 } from 'pages/ArticleDetailsPage/model/services/fetchArticleRecommendations/fetchArticleRecommendations';
 import { articleDetailsPageReducer } from 'pages/ArticleDetailsPage/model/slices';
 import cls from './ArticleDetailsPage.module.scss';
+import { ArticleDetailsPageHeader } from '../ArticleDetailsPageHeader/ArticleDetailsPageHeader';
 
 interface ArticleDetailsPageProps {
     className?: string;
@@ -47,7 +48,6 @@ const reducers: ReducersList = {
 const ArticleDetailsPage = ({ className }: ArticleDetailsPageProps) => {
 	const { t } = useTranslation('article-details');
 	const { id } = useParams<{ id: string }>();
-	const navigate = useNavigate();
 
 	const dispatch = useAppDispatch();
 	const comments = useSelector(getArticleComments.selectAll);
@@ -57,10 +57,6 @@ const ArticleDetailsPage = ({ className }: ArticleDetailsPageProps) => {
 	const recommendations = useSelector(getArticleRecommendations.selectAll);
 	const recommendationsIsLoading = useSelector(getArticleRecommendationsIsLoading);
 	const recommendationsError = useSelector(getArticleRecommendationsError);
-
-	const onBackToList = useCallback(() => {
-		navigate(RoutePath.articles);
-	}, [navigate]);
 
 	const onSendComment = useCallback((text: string) => {
 		dispatch(addCommentForArticle(text));
@@ -82,9 +78,7 @@ const ArticleDetailsPage = ({ className }: ArticleDetailsPageProps) => {
 	return (
 		<DynamicModuleLoader reducers={reducers} removeAfterUnmount>
 			<Page className={classNames(cls.ArticleDetailsPage, {}, [className])}>
-				<Button theme={ThemeButton.OUTLINE} onClick={onBackToList}>
-					{t('Back to articles')}
-				</Button>
+				<ArticleDetailsPageHeader />
 				<ArticleDetails id={id} />
 				<Text
 					size={TextSize.L}
@@ -95,7 +89,6 @@ const ArticleDetailsPage = ({ className }: ArticleDetailsPageProps) => {
 					articles={recommendations}
 					isLoading={recommendationsIsLoading}
 					className={cls.recommendations}
-					// eslint-disable-next-line i18next/no-literal-string
 					target="_blank"
 				/>
 				<Text
