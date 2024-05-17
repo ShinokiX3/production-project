@@ -12,6 +12,7 @@ interface ArticleListProps {
     articles: Article[];
     isLoading?: boolean;
     view?: ArticleView;
+	target?: React.HTMLAttributeAnchorTarget;
 }
 
 const getSkeletons = (view: ArticleView) => new Array(view === ArticleView.PLATE ? 9 : 3)
@@ -22,7 +23,11 @@ const getSkeletons = (view: ArticleView) => new Array(view === ArticleView.PLATE
 
 export const ArticleList = memo((props: ArticleListProps) => {
 	const {
-		className, articles, isLoading, view = ArticleView.PLATE
+		className,
+		articles,
+		isLoading,
+		target,
+		view = ArticleView.PLATE,
 	} = props;
 
 	const renderArticle = (article: Article) => (
@@ -31,6 +36,7 @@ export const ArticleList = memo((props: ArticleListProps) => {
 			article={article}
 			view={view}
 			key={article.id}
+			target={target}
 		/>
 	);
 

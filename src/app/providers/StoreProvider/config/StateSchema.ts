@@ -8,7 +8,11 @@ import { ProfileSchema } from 'entities/Profile';
 import { AxiosInstance } from 'axios';
 // import { NavigateOptions, To } from 'react-router-dom';
 import { ArticleDetailsSchema } from 'entities/Article/model/types/articleDetailsSchema';
-import { ArticleDetailsCommentsSchema } from 'pages/ArticleDetailsPage';
+import {
+	ArticleDetailsCommentsSchema,
+	ArticleDetailsPageSchema,
+	ArticleDetailsRecommendationsSchema
+} from 'pages/ArticleDetailsPage';
 import { ArticlesPageSchema } from 'pages/ArticlesPage';
 import { AddCommentFormSchema } from 'features/addCommentForm';
 import { ScrollSchema } from 'widgets/Page/Scroll';
@@ -22,9 +26,9 @@ export interface StateSchema {
     loginForm?: LoginSchema;
     profile?: ProfileSchema;
     articleDetails?: ArticleDetailsSchema;
-    articleDetailsComments?: ArticleDetailsCommentsSchema;
     addCommentForm?: AddCommentFormSchema;
     articlesPage?: ArticlesPageSchema;
+    articleDetailsPage?: ArticleDetailsPageSchema;
 }
 
 export type StateSchemaKey = keyof StateSchema;
