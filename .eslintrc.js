@@ -20,7 +20,13 @@ module.exports = {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 	},
-	plugins: ['react', '@typescript-eslint', 'i18next', 'react-hooks'],
+	plugins: [
+		'react',
+		'@typescript-eslint',
+		'i18next',
+		'react-hooks',
+		'shinoki-eslint-plugin'
+	],
 	rules: {
 		indent: [2, 'tab'],
 		'no-tabs': 0,
@@ -85,7 +91,8 @@ module.exports = {
 		'no-param-reassign': 'off',
 		'no-undef': 'off',
 		'jsx-props-no-spreading': 'off',
-		'react/no-array-index-key': 'off'
+		'react/no-array-index-key': 'off',
+		'shinoki-eslint-plugin/path-checker': 'error'
 	},
 	globals: {
 		__IS_DEV__: true,

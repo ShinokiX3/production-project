@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import { classNames } from 'shared/lib/classNames/classNames';
-import { Article, ArticleView } from 'entities/Article/model/types/article';
 import { t } from 'i18next';
 import { Text, TextSize } from 'shared/ui/Text/Text';
 import { List, ListRowProps, WindowScroller } from 'react-virtualized';
 import { PAGE_ID } from 'widgets/Page/ui/Page';
+import { Article, ArticleView } from '../../model/types/article';
 import cls from './ArticleList.module.scss';
 import { ArticleListItem } from '../ArticleListItem/ArticleListItem';
 import { ArticleListItemSkeleton } from '../ArticleListItem/ArticleListItemSkeleton';

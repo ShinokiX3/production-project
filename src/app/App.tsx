@@ -3,9 +3,9 @@ import { Navbar } from 'widgets/Navbar';
 import { Sidebar } from 'widgets/Sidebar';
 import { Suspense, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTheme } from './providers/ThemeProvider';
 import { getUserInited, userActions } from '../entities/User';
 import { AppRouter } from './providers/router';
-import { useTheme } from './providers/ThemeProvider';
 
 function App() {
 	const { theme } = useTheme();
