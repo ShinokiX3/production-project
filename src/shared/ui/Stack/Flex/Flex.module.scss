@@ -1,0 +1,69 @@
+.Flex {
+	display: flex;
+}
+
+// justify
+
+.j_start {
+	justify-content: flex-start;
+}
+
+.j_center {
+	justify-content: center;
+}
+
+.j_end {
+	justify-content: flex-end;
+}
+
+.j_between {
+	justify-content: space-between;
+}
+
+// align
+
+.a_start {
+	align-items: flex-start;
+}
+
+.a_center {
+	align-items: center;
+}
+
+.a_end {
+	align-items: flex-end;
+}
+
+// direction
+
+.d_row {
+	flex-direction: row;
+}
+
+.d_column {
+	flex-direction: column;
+}
+
+// gpa
+
+.g_4 {
+	gap: 4px;
+}
+
+.g_8 {
+	gap: 8px;
+}
+
+.g_16 {
+	gap: 16px;
+}
+
+.g_32 {
+	gap: 32px;
+}
+
+// width
+
+.max {
+	width: 100%;
+}
