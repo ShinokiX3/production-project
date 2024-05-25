@@ -30,6 +30,22 @@
 	opacity: 0.7;
 }
 
-.options_top {
+.options_b_l {
+	top: 100%;
+	right: 0;
+}
+
+.options_t_l {
 	bottom: 100%;
+	right: 0;
+}
+
+.options_b_r {
+	top: 100%;
+	left: 0;
+}
+
+.options_t_r {
+	bottom: 100%;
+	left: 0;
 }
