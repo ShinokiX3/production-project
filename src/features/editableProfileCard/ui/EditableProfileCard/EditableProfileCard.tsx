@@ -51,9 +51,7 @@ export const EditableProfileCard = memo((props: EditableProfileCardProps) => {
 	};
 
 	useInitialEffect(() => {
-		if (id) {
-			dispatch(fetchProfileData(id));
-		}
+		if (id) dispatch(fetchProfileData(id));
 	});
 
 	const onChangeFirstname = useCallback((value?: string) => {
@@ -101,6 +99,7 @@ export const EditableProfileCard = memo((props: EditableProfileCardProps) => {
 						key={error}
 						theme={TextTheme.ERROR}
 						text={validateErrorTranslates[error]}
+						data-testid="EditableProfileCard.Error"
 					/>
 				))}
 				<ProfileCard
