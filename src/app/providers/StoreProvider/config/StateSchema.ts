@@ -4,23 +4,23 @@ import { UserSchema } from 'entities/User';
 import {
 	AnyAction, CombinedState, EnhancedStore, Reducer, ReducersMapObject
 } from '@reduxjs/toolkit';
-import { ProfileSchema } from 'entities/Profile';
 import { AxiosInstance } from 'axios';
 // import { NavigateOptions, To } from 'react-router-dom';
 import { ArticleDetailsSchema } from 'entities/Article/model/types/articleDetailsSchema';
 import {
-	ArticleDetailsCommentsSchema,
 	ArticleDetailsPageSchema,
-	ArticleDetailsRecommendationsSchema
 } from 'pages/ArticleDetailsPage';
 import { ArticlesPageSchema } from 'pages/ArticlesPage';
 import { AddCommentFormSchema } from 'features/addCommentForm';
 import { ScrollSchema } from 'widgets/Page/Scroll';
+import { rtkApi } from 'shared/api/rtkApi';
+import { ProfileSchema } from 'features/editableProfileCard';
 
 export interface StateSchema {
     counter: CounterSchema;
     user: UserSchema;
     scroll: ScrollSchema;
+    [rtkApi.reducerPath]: ReturnType<typeof rtkApi.reducer>;
 
     // async reducers
     loginForm?: LoginSchema;
