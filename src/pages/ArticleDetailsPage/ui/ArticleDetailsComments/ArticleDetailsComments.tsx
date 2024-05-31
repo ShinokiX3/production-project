@@ -42,7 +42,7 @@ export const ArticleDetailsComments = memo((props: ArticleDetailsCommentsProps) 
 	});
 
 	return (
-		<VStack gap="16" className={classNames('', {}, [className])}>
+		<VStack max gap="16" className={classNames('', {}, [className])}>
 			<Text
 				size={TextSize.L}
 				title={t('Comments')}
