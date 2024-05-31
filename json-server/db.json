@@ -566,14 +566,14 @@
       "id": "1",
       "username": "admin",
       "password": "123",
-      "role": "ADMIN",
+      "roles": ["ADMIN"],
       "avatar": "https://i.pinimg.com/564x/0a/e1/63/0ae163d22f24d5c264664460c3f18ee5.jpg"
     },
     {
       "id": "2",
       "username": "user",
       "password": "123",
-      "role": "USER",
+      "roles": ["USER"],
       "avatar": "https://i.pinimg.com/564x/0a/e1/63/0ae163d22f24d5c264664460c3f18ee5.jpg"
     }
   ],

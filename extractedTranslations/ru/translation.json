@@ -1,4 +1,6 @@
 {
+  "Access denied": "Access denied",
+  "Admin panel": "Admin panel",
   "Article not found": "Article not found",
   "Articles create": "Articles create",
   "Articles edit": "Articles edit",
@@ -41,6 +43,11 @@
   "created at": "created at",
   "descending": "descending",
   "for": "for",
+  "pages": {
+    "adminPanel": {
+      "title": "title"
+    }
+  },
   "title": "title",
   "views": "views",
   "Ваш аватар (ссылка)": "Ваш аватар (ссылка)",
