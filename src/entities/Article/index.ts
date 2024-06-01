@@ -6,12 +6,16 @@ export {
 	ArticleDetails
 } from './ui/ArticleDetails/ArticleDetails';
 
+export type {
+	Article
+} from './model/types/article';
+
 export {
-	Article,
 	ArticleView,
 	ArticleType,
-	ArticleSortField
-} from './model/types/article';
+	ArticleSortField,
+	ArticleBlockType
+} from './model/consts/consts';
 
 export type {
 	articleDetailsSlice

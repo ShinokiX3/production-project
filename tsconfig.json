@@ -15,7 +15,8 @@
 		},
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
-		"types": ["jest", "node"]
+		"types": ["jest", "node"],
+		"isolatedModules": true
 	},
 	"ts-node": {
 		"compilerOptions": {
