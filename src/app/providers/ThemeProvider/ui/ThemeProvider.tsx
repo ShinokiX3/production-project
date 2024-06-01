@@ -9,9 +9,10 @@ const defaultTheme = (localStorage.getItem(LOCAL_STORAGE_THEME_KEY) as Theme) ||
 
 interface ThemeProviderProps {
 	initialTheme?: Theme;
+	children: React.ReactNode;
 }
 
-const ThemeProvider: React.FC<ThemeProviderProps> = (props) => {
+const ThemeProvider = (props: ThemeProviderProps) => {
 	const { initialTheme, children } = props;
 	const [theme, setTheme] = useState<Theme>(initialTheme || defaultTheme);
 

@@ -11,8 +11,6 @@ interface ProfilePageProps {
 const ProfilePage = ({ className }: ProfilePageProps) => {
 	const { id } = useParams<{ id: string }>();
 
-	if (!id) return null;
-
 	return (
 		<Page className={classNames('', {}, [className])}>
 			<VStack max gap="16">
