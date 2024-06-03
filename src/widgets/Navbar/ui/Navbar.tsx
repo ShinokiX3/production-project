@@ -10,8 +10,11 @@ import {
 import { Text, TextTheme } from 'shared/ui/Text/Text';
 import { RoutePath } from 'shared/config/routeConfig/routeConfig';
 import { AppLink, AppLinkTheme } from 'shared/ui/AppLink/AppLink';
-import { Menu } from 'shared/ui/Menu/Menu';
 import { Avatar } from 'shared/ui/Avatar/Avatar';
+import { HStack } from 'shared/ui/Stack';
+import { Menu } from 'shared/ui/Popups';
+import { NotificationButton } from 'features/notificationButton';
+import { AvatarMenu } from 'features/avatarMenu';
 import cls from './Navbar.module.scss';
 
 interface NavbarProps {
@@ -20,19 +23,12 @@ interface NavbarProps {
 
 export const Navbar = memo(({ className }: NavbarProps) => {
 	const [isAuthModal, setIsAuthModal] = useState<boolean>(false);
-
 	const { t } = useTranslation();
 
-	const dispatch = useDispatch();
 	const authData = useSelector(getUserAuthData);
-	const isAdmin = useSelector(isUserAdmin);
-	const isManager = useSelector(isUserManager);
 
 	const showModal = useCallback(() => setIsAuthModal(true), []);
 	const closeModal = useCallback(() => setIsAuthModal(false), []);
-	const logout = useCallback(() => dispatch(userActions.logout()), [dispatch]);
-
-	const isAdminPanelAvailable = isAdmin || isManager;
 
 	if (authData) {
 		return (
@@ -49,25 +45,10 @@ export const Navbar = memo(({ className }: NavbarProps) => {
 				>
 					{t('Create article')}
 				</AppLink>
-				<Menu
-					direction="bottom left"
-					className={cls.menu}
-					items={[
-						...(isAdminPanelAvailable ? [{
-							content: t('Admin panel'),
-							href: RoutePath.admin_panel
-						}] : []),
-						{
-							content: t('Profile'),
-							href: RoutePath.profile + authData.id
-						},
-						{
-							content: t('Quit'),
-							onClick: logout
-						}
-					]}
-					trigger={<Avatar size={30} src={authData.avatar} />}
-				/>
+				<HStack gap="16" className={cls.actions}>
+					<NotificationButton />
+					<AvatarMenu />
+				</HStack>
 			</header>
 		);
 	}

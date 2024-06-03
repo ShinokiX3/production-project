@@ -1,6 +1,6 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react';
 import { Menu } from './Menu';
-import { Button } from '../Button/Button';
+import { Button } from '../../../Button/Button';
 
 export default {
 	title: 'shared/Menu',
