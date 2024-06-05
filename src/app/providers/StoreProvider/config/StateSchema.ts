@@ -1,20 +1,20 @@
-import { LoginSchema } from 'features/AuthByUsername';
-import { CounterSchema } from 'entities/Counter';
-import { UserSchema } from 'entities/User';
 import {
 	AnyAction, CombinedState, EnhancedStore, Reducer, ReducersMapObject
 } from '@reduxjs/toolkit';
 import { AxiosInstance } from 'axios';
-// import { NavigateOptions, To } from 'react-router-dom';
-import { ArticleDetailsSchema } from 'entities/Article/model/types/articleDetailsSchema';
 import {
 	ArticleDetailsPageSchema,
-} from 'pages/ArticleDetailsPage';
-import { ArticlesPageSchema } from 'pages/ArticlesPage';
-import { AddCommentFormSchema } from 'features/addCommentForm';
-import { ScrollSchema } from 'widgets/Page/Scroll';
-import { rtkApi } from 'shared/api/rtkApi';
-import { ProfileSchema } from 'features/editableProfileCard';
+} from '@/pages/ArticleDetailsPage';
+import { ArticlesPageSchema } from '@/pages/ArticlesPage';
+import { LoginSchema } from '@/features/AuthByUsername';
+import { CounterSchema } from '@/entities/Counter';
+import { UserSchema } from '@/entities/User';
+// import { NavigateOptions, To } from 'react-router-dom';
+import { ArticleDetailsSchema } from '@/entities/Article/model/types/articleDetailsSchema';
+import { AddCommentFormSchema } from '@/features/addCommentForm';
+import { ScrollSchema } from '@/widgets/Page/Scroll';
+import { rtkApi } from '@/shared/api/rtkApi';
+import { ProfileSchema } from '@/features/editableProfileCard';
 
 export interface StateSchema {
     counter: CounterSchema;
