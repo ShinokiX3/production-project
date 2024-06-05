@@ -34,7 +34,7 @@ export const Menu = (props: MenuProps) => {
 				{trigger}
 			</MenuUI.Button>
 			<MenuUI.Items className={classNames(cls.menu, {}, menuClasses)}>
-				{items.map((item) => {
+				{items.map((item, index) => {
 					const content = ({ active }: {active: boolean}) => (
 						<button
 							type="button"
@@ -48,14 +48,23 @@ export const Menu = (props: MenuProps) => {
 
 					if (item.href) {
 						return (
-							<MenuUI.Item as={AppLink} to={item.href} disabled={item.disabled}>
+							<MenuUI.Item
+								key={`menu-key-${index}`}
+								as={AppLink}
+								to={item.href}
+								disabled={item.disabled}
+							>
 								{content}
 							</MenuUI.Item>
 						);
 					}
 
 					return (
-						<MenuUI.Item as={Fragment} disabled={item.disabled}>
+						<MenuUI.Item
+							key={`menu-key-${index}`}
+							as={Fragment}
+							disabled={item.disabled}
+						>
 							{content}
 						</MenuUI.Item>
 					);
