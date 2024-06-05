@@ -11,6 +11,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
     className?: string;
     children: React.ReactNode;
 	theme?: CardTheme;
+	full?: boolean;
 }
 
 export const Card = memo((props: CardProps) => {
@@ -18,11 +19,16 @@ export const Card = memo((props: CardProps) => {
 		className,
 		children,
 		theme = CardTheme.NORMAL,
+		full = false,
 		...otherProps
 	} = props;
 
+	const mods = {
+		[cls.full]: full
+	};
+
 	return (
-		<div className={classNames(cls.Card, {}, [className, cls[theme]])} {...otherProps}>
+		<div className={classNames(cls.Card, mods, [className, cls[theme]])} {...otherProps}>
 			{children}
 		</div>
 	);
