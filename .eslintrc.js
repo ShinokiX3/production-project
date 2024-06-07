@@ -100,7 +100,12 @@ module.exports = {
 		'jsx-props-no-spreading': 'off',
 		'react/no-array-index-key': 'off',
 		'shinoki-eslint-plugin/path-checker': ['error', { alias: '@' }],
-		'shinoki-eslint-plugin/public-api-imports': ['error', { alias: '@' }]
+		'shinoki-eslint-plugin/public-api-imports': ['error',
+			{
+				alias: '@',
+				testFilesPatterns: ['**/*.test.{ts,tsx}', '**/*.story.{ts,tsx}', '**/StoreDecorator.tsx']
+			}
+		]
 	},
 	globals: {
 		__IS_DEV__: true,
