@@ -10,9 +10,9 @@ import { LoginSchema } from '@/features/AuthByUsername';
 import { CounterSchema } from '@/entities/Counter';
 import { UserSchema } from '@/entities/User';
 // import { NavigateOptions, To } from 'react-router-dom';
-import { ArticleDetailsSchema } from '@/entities/Article/model/types/articleDetailsSchema';
+import { ArticleDetailsSchema } from '@/entities/Article';
 import { AddCommentFormSchema } from '@/features/addCommentForm';
-import { ScrollSchema } from '@/widgets/Page/Scroll';
+import { ScrollSchema } from '@/widgets/Page';
 import { rtkApi } from '@/shared/api/rtkApi';
 import { ProfileSchema } from '@/features/editableProfileCard';
 

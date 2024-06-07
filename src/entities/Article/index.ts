@@ -2,6 +2,10 @@ export {
 	getArticleDetailsData
 } from './model/selectors/articleDetails';
 
+export type {
+	ArticleDetailsSchema
+} from './model/types/articleDetailsSchema';
+
 export {
 	ArticleDetails
 } from './ui/ArticleDetails/ArticleDetails';
@@ -18,7 +22,11 @@ export {
 } from './model/consts/consts';
 
 export type {
-	articleDetailsSlice
+	articleDetailsSlice,
+} from './model/slice/articleDetailsSlice';
+
+export {
+	articleDetailsReducer
 } from './model/slice/articleDetailsSlice';
 
 export {
@@ -32,3 +40,7 @@ export {
 export {
 	ArticleTypeTabs
 } from './ui/ArticleTypeTabs/ArticleTypeTabs';
+
+export {
+	getArticleDetailsIsLoading
+} from './model/selectors/articleDetails';
