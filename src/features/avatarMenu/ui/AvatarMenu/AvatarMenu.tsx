@@ -4,12 +4,12 @@ import { useSelector } from 'react-redux';
 import { classNames } from '@/shared/lib/classNames/classNames';
 import { Menu } from '@/shared/ui/Popups';
 import { Avatar } from '@/shared/ui/Avatar/Avatar';
-import { RoutePath } from '@/shared/config/routeConfig/routeConfig';
 import { useAppDispatch } from '@/shared/lib/hooks/useAppDispatch/useAppDispatch';
 import {
 	getUserAuthData, isUserAdmin, isUserManager, userActions
 } from '@/entities/User';
 import cls from './AvatarMenu.module.scss';
+import { RoutePath } from '@/shared/const/router';
 
 interface AvatarMenuProps {
     className?: string;
