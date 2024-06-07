@@ -25,7 +25,8 @@ module.exports = {
 		'@typescript-eslint',
 		'i18next',
 		'react-hooks',
-		'shinoki-eslint-plugin'
+		'shinoki-eslint-plugin',
+		'unused-imports',
 	],
 	rules: {
 		indent: [2, 'tab'],
@@ -33,6 +34,7 @@ module.exports = {
 		'react/jsx-indent': [2, 'tab'],
 		'react/jsx-indent-props': [2, 'tab'],
 		'linebreak-style': 'off',
+		'unused-imports/no-unused-imports': 'error',
 		'react/jsx-filename-extension': [
 			2,
 			{ extensions: ['.js', '.jsx', '.ts', '.tsx', 'ts'] },
