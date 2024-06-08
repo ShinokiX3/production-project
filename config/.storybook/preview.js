@@ -14,6 +14,7 @@ export const parameters = {
       date: /Date$/,
     },
   },
+  layot: 'fullscreen',
 }
 
 addDecorator(StyleDecorator);
