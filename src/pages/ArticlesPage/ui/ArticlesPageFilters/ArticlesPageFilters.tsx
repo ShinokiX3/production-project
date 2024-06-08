@@ -6,8 +6,6 @@ import { ArticleViewSelector } from '@/features/ArticleViewSelector';
 import { useAppDispatch } from '@/shared/lib/hooks/useAppDispatch/useAppDispatch';
 import {
 	ArticleSortField,
-	ArticleSortSelector,
-	ArticleTypeTabs,
 	ArticleView,
 	ArticleType
 } from '@/entities/Article';
@@ -25,6 +23,8 @@ import {
 	getArticlesPageView
 } from '../../model/selectors/articlesPageSelectors';
 import cls from './ArticlesPageFilters.module.scss';
+import { ArticleSortSelector } from '@/features/ArticleSortSelector';
+import { ArticleTypeTabs } from '@/features/ArticleTypeTabs';
 
 interface ArticlesPageFiltersProps {
     className?: string;
