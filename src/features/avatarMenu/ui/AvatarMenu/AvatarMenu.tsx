@@ -9,7 +9,7 @@ import {
 	getUserAuthData, isUserAdmin, isUserManager, userActions
 } from '@/entities/User';
 import cls from './AvatarMenu.module.scss';
-import { RoutePath } from '@/shared/const/router';
+import { getRouteAdminPanel, getRouteProfile } from '@/shared/const/router';
 
 interface AvatarMenuProps {
     className?: string;
@@ -37,11 +37,11 @@ export const AvatarMenu = memo((props: AvatarMenuProps) => {
 			items={[
 				...(isAdminPanelAvailable ? [{
 					content: t('Admin panel'),
-					href: RoutePath.admin_panel
+					href: getRouteAdminPanel()
 				}] : []),
 				{
 					content: t('Profile'),
-					href: RoutePath.profile + authData.id
+					href: getRouteProfile(authData.id)
 				},
 				{
 					content: t('Quit'),
