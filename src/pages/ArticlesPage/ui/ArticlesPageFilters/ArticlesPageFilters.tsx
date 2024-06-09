@@ -11,7 +11,6 @@ import {
 } from '@/entities/Article';
 import { Card } from '@/shared/ui/Card';
 import { Input } from '@/shared/ui/Input';
-import { SortOrder } from '@/shared/types';
 import { useDebounce } from '@/shared/lib/hooks/useDebounce/useDebounce';
 import { fetchArticlesList } from '../../model/services/fetchArticlesList/fetchArticlesList';
 import { articlesPageActions } from '../../model/slices/articlesPageSlice';
@@ -25,6 +24,7 @@ import {
 import cls from './ArticlesPageFilters.module.scss';
 import { ArticleSortSelector } from '@/features/ArticleSortSelector';
 import { ArticleTypeTabs } from '@/features/ArticleTypeTabs';
+import { SortOrder } from '@/shared/types/sort';
 
 interface ArticlesPageFiltersProps {
     className?: string;
