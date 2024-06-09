@@ -7,7 +7,7 @@
 /coverage
 /.loki/report.json
 /.loki/report.html
-/reports
+/reports/unit
 
 # production
 /build
