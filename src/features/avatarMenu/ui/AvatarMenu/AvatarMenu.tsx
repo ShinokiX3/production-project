@@ -36,7 +36,7 @@ export const AvatarMenu = memo((props: AvatarMenuProps) => {
 			direction="bottom left"
 			items={[
 				...(isAdminPanelAvailable ? [{
-					content: t('Admin panel'),
+					content: t('Admin'),
 					href: getRouteAdminPanel()
 				}] : []),
 				{
@@ -48,7 +48,7 @@ export const AvatarMenu = memo((props: AvatarMenuProps) => {
 					onClick: logout
 				}
 			]}
-			trigger={<Avatar size={30} src={authData.avatar} />}
+			trigger={<Avatar fallbackInverted size={30} src={authData.avatar} />}
 		/>
 	);
 });
