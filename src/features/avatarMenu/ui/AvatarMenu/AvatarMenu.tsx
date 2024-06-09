@@ -8,7 +8,6 @@ import { useAppDispatch } from '@/shared/lib/hooks/useAppDispatch/useAppDispatch
 import {
 	getUserAuthData, isUserAdmin, isUserManager, userActions
 } from '@/entities/User';
-import cls from './AvatarMenu.module.scss';
 import { getRouteAdminPanel, getRouteProfile } from '@/shared/const/router';
 
 interface AvatarMenuProps {
@@ -32,7 +31,7 @@ export const AvatarMenu = memo((props: AvatarMenuProps) => {
 
 	return (
 		<Menu
-			className={classNames(cls.AvatarMenu, {}, [className])}
+			className={classNames('', {}, [className])}
 			direction="bottom left"
 			items={[
 				...(isAdminPanelAvailable ? [{
