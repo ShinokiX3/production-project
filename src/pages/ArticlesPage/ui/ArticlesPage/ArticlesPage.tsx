@@ -1,9 +1,14 @@
 import { memo, useCallback } from 'react';
 import { classNames } from '@/shared/lib/classNames/classNames';
-import { DynamicModuleLoader, ReducersList } from '@/shared/lib/components/DymanicModuleLoader/DynamicModuleLoader';
+import {
+	DynamicModuleLoader,
+	ReducersList
+} from '@/shared/lib/components/DymanicModuleLoader/DynamicModuleLoader';
 import { useAppDispatch } from '@/shared/lib/hooks/useAppDispatch/useAppDispatch';
 import { Page } from '@/widgets/Page';
-import { fetchNextArticlesPage } from '../../model/services/fetchNextArticlesPage/fetchNextArticlesPage';
+import {
+	fetchNextArticlesPage
+} from '../../model/services/fetchNextArticlesPage/fetchNextArticlesPage';
 import {
 	articlesPageReducer
 } from '../../model/slices/articlesPageSlice';
@@ -28,7 +33,11 @@ const ArticlesPage = ({ className }: ArticlesPageProps) => {
 
 	return (
 		<DynamicModuleLoader reducers={reducers} removeAfterUnmount={false}>
-			<Page onScrollEnd={onLoadNextPart} className={classNames(cls.ArticlePage, {}, [className])}>
+			<Page
+				data-testid="ArticlesPage"
+				onScrollEnd={onLoadNextPart}
+				className={classNames(cls.ArticlePage, {}, [className])}
+			>
 				<ArticlesPageFilters />
 				<ArticleInfiniteList className={cls.list} />
 			</Page>
