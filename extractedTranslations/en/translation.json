@@ -47,10 +47,13 @@
   "There are not any comments here!": "There are not any comments here!",
   "Try to restart the page": "Try to restart the page",
   "Your grade": "Your grade",
+  "add5": "",
   "ascending": "ascending",
   "created at": "created at",
+  "decrement": "",
   "descending": "descending",
   "for": "for",
+  "increment": "",
   "pages": {
     "adminPanel": {
       "title": "title"
