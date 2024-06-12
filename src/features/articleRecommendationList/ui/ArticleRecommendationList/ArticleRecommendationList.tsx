@@ -21,7 +21,11 @@ export const ArticleRecommendationList = memo((props: ArticleRecommendationListP
 	if (isLoading || error || !articles) return null;
 
 	return (
-		<VStack gap="8" className={classNames('', {}, [className])}>
+		<VStack
+			gap="8"
+			className={classNames('', {}, [className])}
+			data-testid="ArticleRecommendationList"
+		>
 			<Text
 				size={TextSize.L}
 				title={t('Recommendations')}

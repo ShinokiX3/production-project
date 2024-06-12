@@ -21,5 +21,8 @@ export default defineConfig({
 	},
 	esbuild: {
 		target: 'es6'
+	},
+	server: {
+		host: true
 	}
 });
