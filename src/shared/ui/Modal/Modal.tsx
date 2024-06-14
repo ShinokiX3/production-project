@@ -9,33 +9,38 @@ interface ModalProps {
     children?: React.ReactNode;
     isOpen?: boolean;
     onClose?: () => void;
-	lazy?: boolean;
+    lazy?: boolean;
 }
 
 const ANIMATION_DELAY = 300;
 
 export const Modal = (props: ModalProps) => {
-	const {
-		className, children, isOpen, onClose, lazy
-	} = props;
+    const { className, children, isOpen, onClose, lazy } = props;
 
-	const { close, isClosing, isMounted } = useModal({ animationDelay: ANIMATION_DELAY, isOpen, onClose });
+    const { close, isClosing, isMounted } = useModal({
+        animationDelay: ANIMATION_DELAY,
+        isOpen,
+        onClose,
+    });
 
-	const mods: Mods = {
-		[cls.opened]: isOpen,
-		[cls.is_closing]: isClosing,
-	};
+    const mods: Mods = {
+        [cls.opened]: isOpen,
+        [cls.is_closing]: isClosing,
+    };
 
-	if (lazy && !isMounted) return null;
+    if (lazy && !isMounted) return null;
 
-	return (
-		<Portal>
-			<div className={classNames(cls.Modal, mods, [className, 'app_modal'])}>
-				<Overlay onClick={close} />
-				<div className={cls.content}>
-					{children}
-				</div>
-			</div>
-		</Portal>
-	);
+    return (
+        <Portal>
+            <div
+                className={classNames(cls.Modal, mods, [
+                    className,
+                    'app_modal',
+                ])}
+            >
+                <Overlay onClick={close} />
+                <div className={cls.content}>{children}</div>
+            </div>
+        </Portal>
+    );
 };

@@ -4,24 +4,24 @@ import { classNames } from '@/shared/lib/classNames/classNames';
 import { Button, ThemeButton } from '../Button/Button';
 
 interface LangSwitcherProps {
-	className?: string;
-	short?: boolean;
+    className?: string;
+    short?: boolean;
 }
 
 export const LangSwitcher = memo(({ className, short }: LangSwitcherProps) => {
-	const { t, i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
 
-	const toggle = () => {
-		i18n.changeLanguage(i18n.language === 'ru' ? 'en' : 'ru');
-	};
+    const toggle = () => {
+        i18n.changeLanguage(i18n.language === 'ru' ? 'en' : 'ru');
+    };
 
-	return (
-		<Button
-			theme={ThemeButton.CLEAR}
-			className={classNames('', {}, [className])}
-			onClick={toggle}
-		>
-			{t(short ? 'Короткий язык' : 'Язык')}
-		</Button>
-	);
+    return (
+        <Button
+            theme={ThemeButton.CLEAR}
+            className={classNames('', {}, [className])}
+            onClick={toggle}
+        >
+            {t(short ? 'Короткий язык' : 'Язык')}
+        </Button>
+    );
 });

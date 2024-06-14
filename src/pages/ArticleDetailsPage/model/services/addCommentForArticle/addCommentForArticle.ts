@@ -7,38 +7,33 @@ import { getArticleDetailsData } from '@/entities/Article';
 import { fetchCommentsByArticleId } from '../fetchCommentsByArticleId/fetchCommentsByArticleId';
 
 export const addCommentForArticle = createAsyncThunk<
-		Comment,
-		string,
-		ThunkConfig<string>
-	>(
-		'articleDetails/addCommentForArticle',
-		async (text, thunkApi) => {
-			const {
-				dispatch, extra, rejectWithValue, getState
-			} = thunkApi;
+    Comment,
+    string,
+    ThunkConfig<string>
+>('articleDetails/addCommentForArticle', async (text, thunkApi) => {
+    const { dispatch, extra, rejectWithValue, getState } = thunkApi;
 
-			const userData = getUserAuthData(getState());
-			const article = getArticleDetailsData(getState());
+    const userData = getUserAuthData(getState());
+    const article = getArticleDetailsData(getState());
 
-			if (!userData || !text || !article) {
-				console.log(userData, text, article);
-				return rejectWithValue('no data');
-			}
+    if (!userData || !text || !article) {
+        console.log(userData, text, article);
+        return rejectWithValue('no data');
+    }
 
-			try {
-				const response = await extra.api.post<Comment>('/comments', {
-					articleId: article.id,
-					userId: userData.id,
-					text,
-				});
+    try {
+        const response = await extra.api.post<Comment>('/comments', {
+            articleId: article.id,
+            userId: userData.id,
+            text,
+        });
 
-				if (!response.data) throw new Error('error');
+        if (!response.data) throw new Error('error');
 
-				dispatch(fetchCommentsByArticleId(article.id));
+        dispatch(fetchCommentsByArticleId(article.id));
 
-				return response.data;
-			} catch (error) {
-				return rejectWithValue(i18n.t('Неверный логин или пароль'));
-			}
-		}
-	);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(i18n.t('Неверный логин или пароль'));
+    }
+});

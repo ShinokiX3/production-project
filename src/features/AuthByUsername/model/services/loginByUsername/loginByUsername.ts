@@ -10,26 +10,26 @@ interface LoginByUsernameProps {
 }
 
 export const loginByUsername = createAsyncThunk<
-		User,
-		LoginByUsernameProps,
-		ThunkConfig<string>
-	>(
-		'login/loginByUsername',
-		async (authData, thunkApi) => {
-			const { dispatch, extra, rejectWithValue } = thunkApi;
+    User,
+    LoginByUsernameProps,
+    ThunkConfig<string>
+>('login/loginByUsername', async (authData, thunkApi) => {
+    const { dispatch, extra, rejectWithValue } = thunkApi;
 
-			try {
-				const response = await extra.api.post<User>('/login', authData);
+    try {
+        const response = await extra.api.post<User>('/login', authData);
 
-				if (!response.data) throw new Error('error');
+        if (!response.data) throw new Error('error');
 
-				localStorage.setItem(USER_LOCALSTORAGE_KEY, JSON.stringify(response.data));
-				dispatch(userActions.setAuthData(response.data));
+        localStorage.setItem(
+            USER_LOCALSTORAGE_KEY,
+            JSON.stringify(response.data),
+        );
+        dispatch(userActions.setAuthData(response.data));
 
-				// extra.navigate?.('/profile');
-				return response.data;
-			} catch (error) {
-				return rejectWithValue(i18n.t('Неверный логин или пароль'));
-			}
-		}
-	);
+        // extra.navigate?.('/profile');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(i18n.t('Неверный логин или пароль'));
+    }
+});

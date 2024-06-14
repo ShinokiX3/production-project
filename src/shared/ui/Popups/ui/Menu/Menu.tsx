@@ -22,55 +22,57 @@ interface MenuProps {
 }
 
 export const Menu = (props: MenuProps) => {
-	const {
-		className, trigger, items, direction = 'bottom right',
-	} = props;
+    const { className, trigger, items, direction = 'bottom right' } = props;
 
-	const menuClasses = [mapDirectionClass[direction]];
+    const menuClasses = [mapDirectionClass[direction]];
 
-	return (
-		<MenuUI as="div" className={classNames(cls.Menu, {}, [className, popupCls.popup])}>
-			<MenuUI.Button className={popupCls.trigger}>
-				{trigger}
-			</MenuUI.Button>
-			<MenuUI.Items className={classNames(cls.menu, {}, menuClasses)}>
-				{items.map((item, index) => {
-					const content = ({ active }: {active: boolean}) => (
-						<button
-							type="button"
-							disabled={item.disabled}
-							onClick={item.onClick}
-							className={classNames(cls.item, { [popupCls.active]: active })}
-						>
-							{item.content}
-						</button>
-					);
+    return (
+        <MenuUI
+            as="div"
+            className={classNames(cls.Menu, {}, [className, popupCls.popup])}
+        >
+            <MenuUI.Button className={popupCls.trigger}>
+                {trigger}
+            </MenuUI.Button>
+            <MenuUI.Items className={classNames(cls.menu, {}, menuClasses)}>
+                {items.map((item, index) => {
+                    const content = ({ active }: { active: boolean }) => (
+                        <button
+                            type="button"
+                            disabled={item.disabled}
+                            onClick={item.onClick}
+                            className={classNames(cls.item, {
+                                [popupCls.active]: active,
+                            })}
+                        >
+                            {item.content}
+                        </button>
+                    );
 
-					if (item.href) {
-						return (
-							<MenuUI.Item
-								key={`menu-key-${index}`}
-								as={AppLink}
-								to={item.href}
-								disabled={item.disabled}
-							>
-								{content}
-							</MenuUI.Item>
-						);
-					}
+                    if (item.href) {
+                        return (
+                            <MenuUI.Item
+                                key={`menu-key-${index}`}
+                                as={AppLink}
+                                to={item.href}
+                                disabled={item.disabled}
+                            >
+                                {content}
+                            </MenuUI.Item>
+                        );
+                    }
 
-					return (
-						<MenuUI.Item
-							key={`menu-key-${index}`}
-							as={Fragment}
-							disabled={item.disabled}
-						>
-							{content}
-						</MenuUI.Item>
-					);
-				})}
-
-			</MenuUI.Items>
-		</MenuUI>
-	);
+                    return (
+                        <MenuUI.Item
+                            key={`menu-key-${index}`}
+                            as={Fragment}
+                            disabled={item.disabled}
+                        >
+                            {content}
+                        </MenuUI.Item>
+                    );
+                })}
+            </MenuUI.Items>
+        </MenuUI>
+    );
 };

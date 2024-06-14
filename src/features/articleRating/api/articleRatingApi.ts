@@ -14,24 +14,24 @@ interface MutationQParams {
 }
 
 const articleRatingApi = rtkApi.injectEndpoints({
-	endpoints: (build) => ({
-		getArticleRatings: build.query<Rating[], GetQParams>({
-			query: ({ userId, articleId }) => ({
-				url: '/article-ratings',
-				params: {
-					userId,
-					articleId
-				}
-			})
-		}),
-		rateArticle: build.mutation<void, MutationQParams>({
-			query: (params) => ({
-				url: '/article-ratings',
-				method: 'POST',
-				body: params
-			})
-		})
-	})
+    endpoints: (build) => ({
+        getArticleRatings: build.query<Rating[], GetQParams>({
+            query: ({ userId, articleId }) => ({
+                url: '/article-ratings',
+                params: {
+                    userId,
+                    articleId,
+                },
+            }),
+        }),
+        rateArticle: build.mutation<void, MutationQParams>({
+            query: (params) => ({
+                url: '/article-ratings',
+                method: 'POST',
+                body: params,
+            }),
+        }),
+    }),
 });
 
 export const useGetArticleRatings = articleRatingApi.useGetArticleRatingsQuery;

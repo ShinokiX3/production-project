@@ -16,49 +16,53 @@ interface CommentCardProps {
 }
 
 export const CommentCard = memo((props: CommentCardProps) => {
-	const { className, comment, isLoading } = props;
+    const { className, comment, isLoading } = props;
 
-	if (isLoading) {
-		return (
-			<VStack
-				max
-				gap="8"
-				className={classNames(cls.CommentCard, {}, [className, cls.loading])}
-				data-testid="CommentCard.Loading"
-			>
-				<div className={cls.header}>
-					<Skeleton width={30} height={30} border="50%" />
-					<Skeleton className={cls.username} width={100} height={16} />
-				</div>
-				<Skeleton className={cls.text} width="100%" height={50} />
-			</VStack>
-		);
-	}
+    if (isLoading) {
+        return (
+            <VStack
+                max
+                gap="8"
+                className={classNames(cls.CommentCard, {}, [
+                    className,
+                    cls.loading,
+                ])}
+                data-testid="CommentCard.Loading"
+            >
+                <div className={cls.header}>
+                    <Skeleton width={30} height={30} border="50%" />
+                    <Skeleton
+                        className={cls.username}
+                        width={100}
+                        height={16}
+                    />
+                </div>
+                <Skeleton className={cls.text} width="100%" height={50} />
+            </VStack>
+        );
+    }
 
-	if (!comment) {
-		return null;
-	}
+    if (!comment) {
+        return null;
+    }
 
-	return (
-		<VStack
-			max
-			gap="8"
-			className={classNames(cls.CommentCard, {}, [className])}
-			data-testid="CommentCard.Content"
-		>
-			<AppLink to={getRouteProfile(comment.user.id)} className={cls.header}>
-				{comment.user?.avatar ? (
-					<Avatar
-						src={comment.user.avatar}
-						size={30}
-					/>
-				) : null}
-				<Text
-					className={cls.username}
-					title={comment.user.username}
-				/>
-			</AppLink>
-			<Text className={cls.text} text={comment.text} />
-		</VStack>
-	);
+    return (
+        <VStack
+            max
+            gap="8"
+            className={classNames(cls.CommentCard, {}, [className])}
+            data-testid="CommentCard.Content"
+        >
+            <AppLink
+                to={getRouteProfile(comment.user.id)}
+                className={cls.header}
+            >
+                {comment.user?.avatar ? (
+                    <Avatar src={comment.user.avatar} size={30} />
+                ) : null}
+                <Text className={cls.username} title={comment.user.username} />
+            </AppLink>
+            <Text className={cls.text} text={comment.text} />
+        </VStack>
+    );
 });

@@ -8,14 +8,17 @@ interface AdminPanelPageProps {
 }
 
 const AdminPanelPage = memo((props: AdminPanelPageProps) => {
-	const { className } = props;
-	const { t } = useTranslation();
+    const { className } = props;
+    const { t } = useTranslation();
 
-	return (
-		<Page data-testid="AdminPanelPage" className={classNames('', {}, [className])}>
-			{t('pages.adminPanel.title')}
-		</Page>
-	);
+    return (
+        <Page
+            data-testid="AdminPanelPage"
+            className={classNames('', {}, [className])}
+        >
+            {t('pages.adminPanel.title')}
+        </Page>
+    );
 });
 
 export default AdminPanelPage;

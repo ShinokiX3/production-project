@@ -8,23 +8,25 @@ import { getUserInited, userActions } from '../entities/User';
 import { AppRouter } from './providers/router';
 
 function App() {
-	const { theme } = useTheme();
-	const dispatch = useDispatch();
-	const _inited = useSelector(getUserInited);
+    const { theme } = useTheme();
+    const dispatch = useDispatch();
+    const _inited = useSelector(getUserInited);
 
-	useEffect(() => { dispatch(userActions.initAuthData()); }, [dispatch]);
+    useEffect(() => {
+        dispatch(userActions.initAuthData());
+    }, [dispatch]);
 
-	return (
-		<div className={classNames('app', {}, [theme])}>
-			<Suspense fallback="">
-				<Navbar />
-				<div className="content-page">
-					<Sidebar />
-					{_inited && <AppRouter />}
-				</div>
-			</Suspense>
-		</div>
-	);
+    return (
+        <div className={classNames('app', {}, [theme])}>
+            <Suspense fallback="">
+                <Navbar />
+                <div className="content-page">
+                    <Sidebar />
+                    {_inited && <AppRouter />}
+                </div>
+            </Suspense>
+        </div>
+    );
 }
 
 export default App;

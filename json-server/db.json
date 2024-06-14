@@ -732,6 +732,13 @@
       "rate": 4,
       "feedback": "Hi",
       "id": "qFbXDeR"
+    },
+    {
+      "userId": "1",
+      "articleId": "8",
+      "rate": 4,
+      "feedback": "SAD",
+      "id": "VVq8n0s"
     }
   ],
   "profile-ratings": [

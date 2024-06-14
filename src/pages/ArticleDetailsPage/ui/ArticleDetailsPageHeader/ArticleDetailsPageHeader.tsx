@@ -13,39 +13,39 @@ interface ArticleDetailsPageHeaderProps {
     className?: string;
 }
 
-export const ArticleDetailsPageHeader = memo((props: ArticleDetailsPageHeaderProps) => {
-	const { className } = props;
+export const ArticleDetailsPageHeader = memo(
+    (props: ArticleDetailsPageHeaderProps) => {
+        const { className } = props;
 
-	const { t } = useTranslation();
-	const navigate = useNavigate();
+        const { t } = useTranslation();
+        const navigate = useNavigate();
 
-	const article = useSelector(getArticleDetailsData);
-	const canEdit = useSelector(getCanEditArticle);
+        const article = useSelector(getArticleDetailsData);
+        const canEdit = useSelector(getCanEditArticle);
 
-	const onBackToList = useCallback(() => {
-		navigate(getRouteArticles());
-	}, [navigate]);
+        const onBackToList = useCallback(() => {
+            navigate(getRouteArticles());
+        }, [navigate]);
 
-	const onEditArticle = useCallback(() => {
-		if (article?.id) navigate(getRouteArticleEdit(article?.id));
-	}, [navigate, article]);
+        const onEditArticle = useCallback(() => {
+            if (article?.id) navigate(getRouteArticleEdit(article?.id));
+        }, [navigate, article]);
 
-	return (
-		<HStack max justify="between" className={classNames('', {}, [className])}>
-			<Button
-				theme={ThemeButton.OUTLINE}
-				onClick={onBackToList}
-			>
-				{t('Back to articles')}
-			</Button>
-			{canEdit && (
-				<Button
-					theme={ThemeButton.OUTLINE}
-					onClick={onEditArticle}
-				>
-					{t('Edit article')}
-				</Button>
-			)}
-		</HStack>
-	);
-});
+        return (
+            <HStack
+                max
+                justify="between"
+                className={classNames('', {}, [className])}
+            >
+                <Button theme={ThemeButton.OUTLINE} onClick={onBackToList}>
+                    {t('Back to articles')}
+                </Button>
+                {canEdit && (
+                    <Button theme={ThemeButton.OUTLINE} onClick={onEditArticle}>
+                        {t('Edit article')}
+                    </Button>
+                )}
+            </HStack>
+        );
+    },
+);

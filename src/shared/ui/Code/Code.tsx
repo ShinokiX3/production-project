@@ -10,24 +10,22 @@ interface CodeProps {
 }
 
 export const Code = memo((props: CodeProps) => {
-	const { className, text } = props;
+    const { className, text } = props;
 
-	const onCopy = useCallback(() => {
-		navigator.clipboard.writeText(text);
-	}, [text]);
+    const onCopy = useCallback(() => {
+        navigator.clipboard.writeText(text);
+    }, [text]);
 
-	return (
-		<pre className={classNames(cls.Code, {}, [className])}>
-			<Button
-				onClick={onCopy}
-				className={cls.copy_btn}
-				theme={ThemeButton.CLEAR}
-			>
-				<CopyIcon className={cls.copy_icon} />
-			</Button>
-			<code>
-				{text}
-			</code>
-		</pre>
-	);
+    return (
+        <pre className={classNames(cls.Code, {}, [className])}>
+            <Button
+                onClick={onCopy}
+                className={cls.copy_btn}
+                theme={ThemeButton.CLEAR}
+            >
+                <CopyIcon className={cls.copy_icon} />
+            </Button>
+            <code>{text}</code>
+        </pre>
+    );
 });

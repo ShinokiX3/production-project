@@ -14,34 +14,41 @@ interface ArticleViewSelectorProps {
 }
 
 const viewTypes = [
-	{
-		view: ArticleView.PLATE,
-		icon: TiledIcon,
-	},
-	{
-		view: ArticleView.LIST,
-		icon: ListIcon,
-	},
+    {
+        view: ArticleView.PLATE,
+        icon: TiledIcon,
+    },
+    {
+        view: ArticleView.LIST,
+        icon: ListIcon,
+    },
 ];
 
 export const ArticleViewSelector = memo((props: ArticleViewSelectorProps) => {
-	const { className, view, onViewClick } = props;
+    const { className, view, onViewClick } = props;
 
-	const onClick = (view: ArticleView) => () => {
-		onViewClick?.(view);
-	};
+    const onClick = (view: ArticleView) => () => {
+        onViewClick?.(view);
+    };
 
-	return (
-		<div className={classNames(cls.ArticleViewSelector, {}, [className])}>
-			{viewTypes.map((type) => (
-				<Button
-					theme={ThemeButton.CLEAR}
-					onClick={onClick(type.view)}
-					key={type.view}
-				>
-					<Icon className={classNames('', { [cls.selected]: type.view !== view }, [])} Svg={type.icon} />
-				</Button>
-			))}
-		</div>
-	);
+    return (
+        <div className={classNames(cls.ArticleViewSelector, {}, [className])}>
+            {viewTypes.map((type) => (
+                <Button
+                    theme={ThemeButton.CLEAR}
+                    onClick={onClick(type.view)}
+                    key={type.view}
+                >
+                    <Icon
+                        className={classNames(
+                            '',
+                            { [cls.selected]: type.view !== view },
+                            [],
+                        )}
+                        Svg={type.icon}
+                    />
+                </Button>
+            ))}
+        </div>
+    );
 });

@@ -8,18 +8,21 @@ import { addCommentFormReducer } from '@/features/addCommentForm/testing';
 import { profileReducer } from '@/features/editableProfileCard';
 
 const defaultAsyncReducers: ReducersList = {
-	loginForm: loginReducer,
-	profile: profileReducer,
-	articleDetails: articleDetailsReducer,
-	addCommentForm: addCommentFormReducer,
-	articleDetailsPage: articleDetailsPageReducer,
+    loginForm: loginReducer,
+    profile: profileReducer,
+    articleDetails: articleDetailsReducer,
+    addCommentForm: addCommentFormReducer,
+    articleDetailsPage: articleDetailsPageReducer,
 };
 
-export const StoreDecorator = (
-	state: DeepPartial<StateSchema>,
-	asyncReducers?: ReducersList
-) => (StoryComponent: Story) => (
-	<StoreProvider initialState={state} asyncReducers={{ ...defaultAsyncReducers, ...asyncReducers }}>
-		<StoryComponent />
-	</StoreProvider>
-);
+export const StoreDecorator =
+    (state: DeepPartial<StateSchema>, asyncReducers?: ReducersList) =>
+    (StoryComponent: Story) =>
+        (
+            <StoreProvider
+                initialState={state}
+                asyncReducers={{ ...defaultAsyncReducers, ...asyncReducers }}
+            >
+                <StoryComponent />
+            </StoreProvider>
+        );
