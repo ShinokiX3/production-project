@@ -1,7 +1,13 @@
-interface ToggleFeatures {
-    // name: keyof FeatureFlags;
-    name: string;
-    on: boolean;
+import { FeatureFlags } from "../types/feature_flags";
+import { getFeatureFlag } from "./setGetFeatures";
+
+interface ToggleFeaturesOptions<T> {
+    name: keyof FeatureFlags;
+    on: () => T;
+    off: () => T;
 }
 
-export const toggleFeatures = ({ name, on }: ToggleFeatures) => on ? name : ''
+export function toggleFeatures<T>({off, on, name}: ToggleFeaturesOptions<T>): T {
+    if (getFeatureFlag(name)) return on();
+    return off();
+};
