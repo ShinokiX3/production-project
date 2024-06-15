@@ -15,11 +15,11 @@ export function buildSlice<
 
         // eslint-disable-next-line
         // @ts-ignore
-        return useMemo(() => {
+        return useMemo(() => 
             // eslint-disable-next-line
             // @ts-ignore
-            bindActionCreators(slice.actions, dispatch);
-        }, [dispatch]);
+            bindActionCreators(slice.actions, dispatch)
+        , [dispatch]);
     };
 
     return {
