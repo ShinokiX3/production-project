@@ -9,14 +9,14 @@ import {
     ReducersList,
 } from '@/shared/lib/components/DymanicModuleLoader/DynamicModuleLoader';
 import { Page } from '@/widgets/Page';
-import { VStack } from '@/shared/ui/Stack';
+import { VStack } from '@/shared/ui/deprecated/Stack';
 import { ArticleRecommendationList } from '@/features/articleRecommendationList';
 import { articleDetailsPageReducer } from '../../model/slices';
 import cls from './ArticleDetailsPage.module.scss';
 import { ArticleDetailsPageHeader } from '../ArticleDetailsPageHeader/ArticleDetailsPageHeader';
 import { ArticleDetailsComments } from '../ArticleDetailsComments/ArticleDetailsComments';
 import { ArticleRating } from '@/features/articleRating';
-import { Card } from '@/shared/ui/Card';
+import { Card } from '@/shared/ui/deprecated/Card';
 import { ToggleFeatures } from '@/shared/features';
 
 interface ArticleDetailsPageProps {
@@ -41,10 +41,12 @@ const ArticleDetailsPage = ({ className }: ArticleDetailsPageProps) => {
                 <VStack max gap="16">
                     <ArticleDetailsPageHeader />
                     <ArticleDetails id={id} />
-                    <ToggleFeatures 
+                    <ToggleFeatures
                         feature="isArticleRatingEnabled"
                         on={<ArticleRating articleId={id} />}
-                        off={<Card>{t('Article rating feature is off...')}</Card>}
+                        off={
+                            <Card>{t('Article rating feature is off...')}</Card>
+                        }
                     />
                     <ArticleRecommendationList />
                     <ArticleDetailsComments id={id} />
