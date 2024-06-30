@@ -20,3 +20,34 @@
 		width: 0;
 	}
 }
+
+.itemRedesigned {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	padding: 0 16px;
+}
+
+.collapsedRedesigned {
+	padding: 0 8px;
+
+	.link {
+		opacity: 0;
+		width: 0;
+		margin: 0;
+	}
+}
+
+.active {
+	background: linear-gradient(89.97deg, #1d59ff4d 1.15%, #5ed3f300 99.97%);
+	position: relative;
+
+	&::before {
+		content: "";
+		position: absolute;
+		width: 2px;
+		left: 0;
+		background: var(--accent-redesigned);
+		height: 100%;
+	}
+}
