@@ -4,13 +4,13 @@ import cls from './Flex.module.scss';
 export type FlexJustify = 'start' | 'center' | 'end' | 'between';
 export type FlexAlign = 'start' | 'center' | 'end';
 export type FlexDirection = 'row' | 'column';
-export type FlexGap = '4' | '8' | '16' | '32';
+export type FlexGap = '4' | '8' | '16' | '24' | '32';
 
 const justifyCls: Record<FlexJustify, string> = {
-    start: cls.f_start,
-    center: cls.f_center,
-    end: cls.f_end,
-    between: cls.f_between,
+    start: cls.j_start,
+    center: cls.j_center,
+    end: cls.j_end,
+    between: cls.j_between,
 };
 
 const alignCls: Record<FlexAlign, string> = {
@@ -28,6 +28,7 @@ const gapCls: Record<FlexGap, string> = {
     4: cls.g_4,
     8: cls.g_8,
     16: cls.g_16,
+    24: cls.g_24,
     32: cls.g_32,
 };
 
