@@ -80,10 +80,8 @@ const replaceToggleFunction = (node: Node) => {
     }
 };
 
-const getAttributeNodeByName = (
-    jsxAttributes: JsxAttribute[],
-    name: string,
-) => jsxAttributes.find((node) => node.getName() === name);
+const getAttributeNodeByName = (jsxAttributes: JsxAttribute[], name: string) =>
+    jsxAttributes.find((node) => node.getName() === name);
 
 const getReplacedComponent = (attribute?: JsxAttribute) => {
     const value = attribute
@@ -125,16 +123,17 @@ const replaceComponent = (node: Node) => {
 };
 
 files.forEach((sourceFile) => {
+    // eslint-disable-next-line consistent-return
     sourceFile.forEachDescendant((node) => {
         if (node.isKind(SyntaxKind.CallExpression) && isToggleFunction(node)) {
-            replaceToggleFunction(node);
+            return replaceToggleFunction(node);
         }
 
         if (
             node.isKind(SyntaxKind.JsxSelfClosingElement) &&
             isToggleComponent(node)
         ) {
-            replaceComponent(node);
+            return replaceComponent(node);
         }
     });
 });
