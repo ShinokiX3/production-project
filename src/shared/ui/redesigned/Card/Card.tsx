@@ -11,6 +11,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
     children: React.ReactNode;
     variant?: CardVariant;
     full?: boolean;
+    screen?: boolean;
     padding?: CardPadding;
     border?: CardBorder;
 }
@@ -21,6 +22,7 @@ export const Card = memo((props: CardProps) => {
         children,
         variant = 'normal',
         full = false,
+        screen = false,
         padding = '8',
         border = 'default',
         ...otherProps
@@ -28,6 +30,7 @@ export const Card = memo((props: CardProps) => {
 
     const mods = {
         [cls.full]: full,
+        [cls.screen]: screen,
     };
 
     const mapPaddingToClass: Record<CardPadding, string> = {

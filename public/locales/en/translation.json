@@ -15,5 +15,8 @@
 	"Введите пароль": "Password",
 	"Форма авторизации": "Authorization form",
 	"Неверный логин или пароль": "Incorrect login or password",
-	"Выйти": "Sign out"
+	"Выйти": "Sign out",
+	"{{count}} Просмотров_zero": "{{count}} Views",
+	"{{count}} Просмотров_one": "{{count}} View",
+	"{{count}} Просмотров_other": "{{count}} Views"
 }
