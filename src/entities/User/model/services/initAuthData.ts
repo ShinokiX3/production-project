@@ -11,12 +11,18 @@ export const initAuthData = createAsyncThunk<User, void, ThunkConfig<string>>(
 
         const userId = localStorage.getItem(USER_LOCALSTORAGE_KEY);
 
-        if (!userId) return rejectWithValue('there is no user id in local storage');
+        if (!userId)
+            return rejectWithValue('there is no user id in local storage');
 
         try {
             const response = await dispatch(
                 getUserDataByIdQuery(userId),
             ).unwrap();
+
+            localStorage.setItem(
+                USER_LOCALSTORAGE_KEY,
+                response.features?.isAppRedesigned ? 'new' : 'old',
+            );
 
             return response;
         } catch (e) {
@@ -24,4 +30,3 @@ export const initAuthData = createAsyncThunk<User, void, ThunkConfig<string>>(
         }
     },
 );
-
