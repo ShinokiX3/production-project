@@ -25,6 +25,7 @@ import { getLoginError } from '../../model/selectors/getLoginError/getLoginError
 import cls from './LoginForm.module.scss';
 import { ToggleFeatures } from '@/shared/features';
 import { VStack } from '@/shared/ui/redesigned/Stack';
+import { useForceUpdate } from '@/shared/lib/render/forceUpdate';
 
 export interface LoginFormProps {
     className?: string;
@@ -42,6 +43,7 @@ const LoginForm = memo(({ className, onSuccess }: LoginFormProps) => {
     const password = useSelector(getLoginPassword);
     const isLoading = useSelector(getLoginIsLoading);
     const error = useSelector(getLoginError);
+    const forceUpdate = useForceUpdate();
 
     const onChangeUsername = useCallback(
         (value: string) => {
@@ -61,8 +63,9 @@ const LoginForm = memo(({ className, onSuccess }: LoginFormProps) => {
         const result = await dispatch(loginByUsername({ username, password }));
         if (result.meta.requestStatus === 'fulfilled') {
             onSuccess();
+            forceUpdate();
         }
-    }, [onSuccess, dispatch, password, username]);
+    }, [onSuccess, dispatch, password, username, forceUpdate]);
 
     return (
         <DynamicModuleLoader removeAfterUnmount reducers={initialReducers}>
