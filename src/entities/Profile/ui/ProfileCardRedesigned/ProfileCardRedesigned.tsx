@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-max-props-per-line */
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/shared/ui/redesigned/Card';
@@ -70,7 +71,7 @@ export const ProfileCardRedesigned = memo((props: ProfileCardProps) => {
     const { t } = useTranslation('profile');
 
     return (
-        <Card full padding="24" className={className}>
+        <Card full padding="24" border="partial" className={className}>
             <VStack gap="32">
                 {data?.avatar && (
                     <HStack max justify="center">

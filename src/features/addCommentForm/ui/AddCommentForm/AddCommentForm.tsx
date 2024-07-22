@@ -86,7 +86,7 @@ const AddCommentForm = memo((props: AddCommentFormProps) => {
                     </HStack>
                 }
                 on={
-                    <Card padding="24" border="round" full>
+                    <Card padding="24" border="partial" full>
                         <HStack
                             max
                             gap="16"
