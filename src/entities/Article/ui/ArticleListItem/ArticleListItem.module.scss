@@ -20,7 +20,7 @@
 		margin-top: 8px;
 	}
 
-	.image {
+	.img {
 		width: 100%;
 		max-height: 250px;
 		object-fit: cover;
@@ -33,7 +33,7 @@
 		margin-top: 16px;
 	}
 
-	.text_block {
+	.textBlock {
 		max-height: 200px;
 		overflow-y: hidden;
 	}
@@ -60,19 +60,19 @@
 		}
 	}
 
-	.image_wrapper {
+	.imageWrapper {
 		width: 200px;
 		height: 200px;
 		position: relative;
 	}
 
-	.image {
+	.img {
 		width: 200px;
 		height: 200px;
 		object-fit: cover;
 	}
 
-	.info_wrapper {
+	.infoWrapper {
 		display: flex;
 		align-items: center;
 		margin-top: 8px;
@@ -95,7 +95,6 @@
 	}
 
 	.title p {
-		margin-top: 8px;
 		width: 200px;
 		white-space: nowrap;
 		overflow: hidden;
@@ -109,7 +108,9 @@
 	}
 
 	&.PLATE {
-		width: 240px;
-		height: 350px;
+		.card {
+			height: 350px;
+			width: 240px;
+		}
 	}
 }

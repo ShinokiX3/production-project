@@ -2,32 +2,12 @@ import { memo } from 'react';
 import { t } from 'i18next';
 import { classNames } from '@/shared/lib/classNames/classNames';
 import { Text, TextSize } from '@/shared/ui/deprecated/Text';
-import { Article } from '../../model/types/article';
 import cls from './ArticleList.module.scss';
 import { ArticleListItem } from '../ArticleListItem/ArticleListItem';
-import { ArticleListItemSkeleton } from '../ArticleListItem/ArticleListItemSkeleton';
 import { ArticleView } from '../../model/consts/consts';
 import { ToggleFeatures } from '@/shared/features';
 import { HStack } from '@/shared/ui/redesigned/Stack';
-
-interface ArticleListProps {
-    className?: string;
-    articles: Article[];
-    isLoading?: boolean;
-    view?: ArticleView;
-    target?: React.HTMLAttributeAnchorTarget;
-}
-
-const getSkeletons = (view: ArticleView) =>
-    new Array(view === ArticleView.PLATE ? 9 : 3)
-        .fill(0)
-        .map((item, index) => (
-            <ArticleListItemSkeleton
-                className={cls.card}
-                key={index}
-                view={view}
-            />
-        ));
+import { ArticleListProps, getSkeletons } from './ArticleList';
 
 export const ArticleList = memo((props: ArticleListProps) => {
     const {
@@ -71,8 +51,8 @@ export const ArticleList = memo((props: ArticleListProps) => {
                             className={cls.card}
                         />
                     ))}
-                    {/* {isLoading && getSkeletons(view)} */}
-                    {getSkeletons(view)}
+                    {isLoading && getSkeletons(view)}
+                    {isLoading && getSkeletons(view)}
                 </div>
             }
             on={
@@ -91,8 +71,7 @@ export const ArticleList = memo((props: ArticleListProps) => {
                             className={cls.card}
                         />
                     ))}
-                    {getSkeletons(view)}
-                    {/* {isLoading && getSkeletons(view)} */}
+                    {isLoading && getSkeletons(view)}
                 </HStack>
             }
         />
