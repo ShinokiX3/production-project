@@ -1,0 +1,251 @@
+name: Tests & Coverage Report
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch: # Возможность запуска вручную
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  test-and-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Полная история для корректной работы с бейджами
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests with HTML Reporter
+      id: run-tests
+      run: npm run test:report
+      continue-on-error: true  # Продолжаем даже при неудачных тестах
+        
+    - name: Determine test status
+      id: test-status
+      run: |
+        if [ "${{ steps.run-tests.outcome }}" == "success" ]; then
+          echo "status=PASSED" >> $GITHUB_OUTPUT
+          echo "emoji=✅" >> $GITHUB_OUTPUT
+          echo "color=success" >> $GITHUB_OUTPUT
+        else
+          echo "status=FAILED" >> $GITHUB_OUTPUT
+          echo "emoji=❌" >> $GITHUB_OUTPUT
+          echo "color=critical" >> $GITHUB_OUTPUT
+        fi
+      
+    - name: Generate badge for test status
+      uses: schneegans/dynamic-badges-action@v1.6.0
+      with:
+        auth: ${{ secrets.GIST_SECRET }}
+        gistID: <your-gist-id-here> # Создайте Gist и вставьте его ID
+        filename: test-status.json
+        label: tests
+        message: ${{ steps.test-status.outputs.status }}
+        color: ${{ steps.test-status.outputs.color }}
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-report
+        path: |
+          ./coverage
+          ./jest_html_reporters.html
+          
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: .
+        branch: gh-pages
+        clean: false
+        clean-exclude: |
+          .gitignore
+          README.md
+        target-folder: reports/${{ github.run_number }} # Сохраняем историю отчетов
+    
+    - name: Create latest symlink
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: ./reports/${{ github.run_number }}
+        branch: gh-pages
+        clean: true
+        target-folder: reports/latest
+    
+    - name: Get deployment URL
+      id: deployment
+      run: |
+        echo "REPORT_URL=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/latest/jest_html_reporters.html" >> $GITHUB_OUTPUT
+        echo "COVERAGE_URL=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/latest/coverage/lcov-report/index.html" >> $GITHUB_OUTPUT
+        echo "HISTORY_URL=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/" >> $GITHUB_OUTPUT
+    
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const reportUrl = '${{ steps.deployment.outputs.REPORT_URL }}';
+          const coverageUrl = '${{ steps.deployment.outputs.COVERAGE_URL }}';
+          const historyUrl = '${{ steps.deployment.outputs.HISTORY_URL }}';
+          const status = '${{ steps.test-status.outputs.status }}';
+          const emoji = '${{ steps.test-status.outputs.emoji }}';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## Отчет о тестировании ${emoji}
+            
+            Статус тестов: **${status}**
+            
+            ### Ссылки:
+            - [📊 Подробный отчет](${reportUrl})
+            - [🔎 Покрытие кода](${coverageUrl})
+            - [🕒 История отчетов](${historyUrl})
+            
+            > Этот отчет был сгенерирован автоматически в GitHub Actions. Run #${{ github.run_number }}`
+          })
+    
+    - name: Comment on commit
+      if: github.event_name == 'push'
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const reportUrl = '${{ steps.deployment.outputs.REPORT_URL }}';
+          const coverageUrl = '${{ steps.deployment.outputs.COVERAGE_URL }}';
+          const historyUrl = '${{ steps.deployment.outputs.HISTORY_URL }}';
+          const status = '${{ steps.test-status.outputs.status }}';
+          const emoji = '${{ steps.test-status.outputs.emoji }}';
+          
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: `## Отчет о тестировании ${emoji}
+            
+            Статус тестов: **${status}**
+            
+            ### Ссылки:
+            - [📊 Подробный отчет](${reportUrl})
+            - [🔎 Покрытие кода](${coverageUrl})
+            - [🕒 История отчетов](${historyUrl})
+            
+            > Этот отчет был сгенерирован автоматически в GitHub Actions. Run #${{ github.run_number }}`
+          })
+          
+  # Для создания сводной страницы со всеми отчетами
+  index-page:
+    needs: test-and-report
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    
+    steps:
+    - name: Checkout gh-pages
+      uses: actions/checkout@v3
+      with:
+        ref: gh-pages
+    
+    - name: Generate index page
+      run: |
+        cat > index.html << EOL
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Test Reports Index</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+          <style>
+            body { padding: 2rem; }
+            .header { margin-bottom: 2rem; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Test Reports Dashboard</h1>
+              <p class="lead">Repository: ${{ github.repository }}</p>
+            </div>
+            
+            <div class="card mb-4">
+              <div class="card-header bg-primary text-white">
+                <h2 class="h5 mb-0">Latest Report</h2>
+              </div>
+              <div class="card-body">
+                <a href="./reports/latest/jest_html_reporters.html" class="btn btn-primary">View Latest Test Report</a>
+                <a href="./reports/latest/coverage/lcov-report/index.html" class="btn btn-info">View Latest Coverage Report</a>
+              </div>
+            </div>
+            
+            <h3>Report History</h3>
+            <p>See previous test reports:</p>
+            <div class="list-group mb-4" id="report-list">
+              <!-- Будет заполнено с помощью JavaScript -->
+            </div>
+          </div>
+          
+          <script>
+            // Скрипт для получения списка всех доступных отчетов
+            fetch('./reports/')
+              .then(response => response.text())
+              .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const links = Array.from(doc.querySelectorAll('a'))
+                  .filter(a => !isNaN(a.textContent.trim()) && a.href.includes('/reports/'));
+                
+                const reportList = document.getElementById('report-list');
+                
+                links.sort((a, b) => {
+                  return parseInt(b.textContent.trim()) - parseInt(a.textContent.trim());
+                }).forEach(link => {
+                  const runNumber = link.textContent.trim();
+                  const listItem = document.createElement('a');
+                  listItem.href = \`./reports/\${runNumber}/jest_html_reporters.html\`;
+                  listItem.classList.add('list-group-item', 'list-group-item-action', 'd-flex', 'justify-content-between', 'align-items-center');
+                  listItem.innerHTML = \`
+                    Run #\${runNumber}
+                    <span>
+                      <a href="./reports/\${runNumber}/coverage/lcov-report/index.html" class="btn btn-sm btn-outline-info ms-2">Coverage</a>
+                    </span>
+                  \`;
+                  reportList.appendChild(listItem);
+                });
+                
+                if (links.length === 0) {
+                  reportList.innerHTML = '<div class="alert alert-info">No report history found</div>';
+                }
+              })
+              .catch(error => {
+                document.getElementById('report-list').innerHTML = 
+                  \`<div class="alert alert-danger">Error loading report history: \${error.message}</div>\`;
+              });
+          </script>
+        </body>
+        </html>
+        EOL
+    
+    - name: Deploy index page
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: .
+        branch: gh-pages
+        clean: false
