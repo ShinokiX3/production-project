@@ -4,8 +4,8 @@
 npx lint-staged
 npm run lint:scss
 npm run test:unit
-# npm run storybook:build
-# npm run test:ui
+npm run test:ui
 
+# npm run storybook:build
 # npm run build:prod
-# 1 2
+# 1 2 3
