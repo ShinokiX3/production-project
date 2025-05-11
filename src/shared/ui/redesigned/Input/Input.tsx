@@ -27,7 +27,7 @@ interface InputProps extends HTMLInputProps {
 }
 
 export const Input = memo((props: InputProps) => {
-    console.log('test');
+    console.log('test 10');
     
     const {
         className,
