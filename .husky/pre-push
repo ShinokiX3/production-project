@@ -1,14 +1,28 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
-# Получить все изменения с последнего коммита
-if [ -n "$FILES" ]; then
-    echo "Running eslint on changed files:"
-    echo "$FILES"
-    npx eslint $FILES
+branch="$(git symbolic-ref --short HEAD)"
 
-    echo "Running jest for related files:"
-    echo "$FILES" | xargs npx jest --findRelatedTests
-else
-    echo "No relevant .ts/.tsx files changed"
-fi
+case "$branch" in
+  FEDS-*)
+    echo "Running lint and tests for branch $branch"
+
+    FILES=$(git diff --name-only origin/$branch...HEAD | grep -E '\.tsx?$')
+
+    if [ -n "$FILES" ]; then
+        echo "Changed files:"
+        echo "$FILES"
+
+        echo "Running eslint:"
+        echo "$FILES" | xargs npx eslint
+
+        echo "Running jest with --findRelatedTests:"
+        echo "$FILES" | xargs npx jest --findRelatedTests
+    else
+        echo "No relevant .ts/.tsx files changed"
+    fi
+    ;;
+  *)
+    echo "Skipping checks: current branch is $branch"
+    ;;
+esac
