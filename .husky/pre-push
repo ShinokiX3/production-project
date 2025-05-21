@@ -12,4 +12,3 @@ if [ -n "$FILES" ]; then
 else
     echo "No relevant .ts/.tsx files changed"
 fi
-;;
