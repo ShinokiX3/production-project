@@ -2,10 +2,14 @@
 . "$(dirname "$0")/_/husky.sh"
 
 # Получить все изменения с последнего коммита
-FILES=$(git diff --name-only HEAD~1 HEAD | grep -E '\.tsx?$')
-
 if [ -n "$FILES" ]; then
-  echo "Running eslint on changed files:"
-  echo "$FILES"
-  npx eslint $FILES
+    echo "Running eslint on changed files:"
+    echo "$FILES"
+    npx eslint $FILES
+
+    echo "Running jest for related files:"
+    echo "$FILES" | xargs npx jest --findRelatedTests
+else
+    echo "No relevant .ts/.tsx files changed"
 fi
+;;

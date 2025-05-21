@@ -31,7 +31,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
  * @deprecated
  */
 export const Button: React.FC<ButtonProps> = memo((props) => {
-    console.log('sdaddsadsa');
+    console.log('sdafewfewddsadsa');
     const {
         children,
         className,
