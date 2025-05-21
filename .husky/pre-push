@@ -1,7 +1,11 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# npm run lint:ts
-# npm run test:unit
+# Получить все изменения с последнего коммита
+FILES=$(git diff --name-only HEAD~1 HEAD | grep -E '\.tsx?$')
 
-npx lint-staged
+if [ -n "$FILES" ]; then
+  echo "Running eslint on changed files:"
+  echo "$FILES"
+  npx eslint $FILES
+fi
