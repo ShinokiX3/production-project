@@ -3,3 +3,5 @@
 
 # npm run lint:ts
 # npm run test:unit
+
+npx lint-staged
