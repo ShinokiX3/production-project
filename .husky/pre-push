@@ -4,6 +4,11 @@
 # Получить все изменения с последнего коммита
 FILES=$(git diff --name-only HEAD~1 HEAD | grep -E '\.tsx?$')
 
+if [ -z "$FILES" ]; then
+    echo "No changed files... Skipping tests."
+    exit 0
+fi
+
 if [ -n "$FILES" ]; then
   echo "Running eslint on changed files:"
   echo "$FILES"
