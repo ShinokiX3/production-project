@@ -222,52 +222,52 @@ Generate only the test code in Jest format with proper imports and test cases. R
     echo "$test_content"
 }
 
-# # Создание базового шаблона теста
-# create_basic_test_template() {
-#     local file="$1"
-#     local content="$2"
-#     local basename_no_ext=$(basename "$file" | sed 's/\.[^.]*$//')
+# Создание базового шаблона теста
+create_basic_test_template() {
+    local file="$1"
+    local content="$2"
+    local basename_no_ext=$(basename "$file" | sed 's/\.[^.]*$//')
     
-#     # Извлекаем имя экспортируемого компонента
-#     local component_name
-#     component_name=$(echo "$content" | grep -oE "export\s+(const|default)\s+[A-Z][a-zA-Z0-9]*" | head -1 | sed 's/export\s\+\(const\|default\)\s\+//')
+    # Извлекаем имя экспортируемого компонента
+    local component_name
+    component_name=$(echo "$content" | grep -oE "export\s+(const|default)\s+[A-Z][a-zA-Z0-9]*" | head -1 | sed 's/export\s\+\(const\|default\)\s\+//')
     
-#     if [[ -z "$component_name" ]]; then
-#         component_name="$basename_no_ext"
-#     fi
+    if [[ -z "$component_name" ]]; then
+        component_name="$basename_no_ext"
+    fi
     
-#     cat << EOF
-# import React from 'react';
-# import { render, screen } from '@testing-library/react';
-# import '@testing-library/jest-dom';
-# import { $component_name } from './$basename_no_ext';
+    cat << EOF
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { $component_name } from './$basename_no_ext';
 
-# describe('$component_name', () => {
-#   it('should render without crashing', () => {
-#     render(<$component_name />);
-#     expect(document.body).toBeInTheDocument();
-#   });
+describe('$component_name', () => {
+  it('should render without crashing', () => {
+    render(<$component_name />);
+    expect(document.body).toBeInTheDocument();
+  });
 
-#   it('should render with provided props', () => {
-#     const testProps = {
-#       className: 'test-class',
-#       'data-testid': 'test-component'
-#     };
+  it('should render with provided props', () => {
+    const testProps = {
+      className: 'test-class',
+      'data-testid': 'test-component'
+    };
     
-#     render(<$component_name {...testProps} />);
-#     const element = screen.getByTestId('test-component');
-#     expect(element).toBeInTheDocument();
-#     expect(element).toHaveClass('test-class');
-#   });
+    render(<$component_name {...testProps} />);
+    const element = screen.getByTestId('test-component');
+    expect(element).toBeInTheDocument();
+    expect(element).toHaveClass('test-class');
+  });
 
-#   // TODO: Add more specific tests based on component functionality
-#   it('should handle user interactions', () => {
-#     // Add interaction tests here
-#     expect(true).toBe(true);
-#   });
-# });
-# EOF
-# }
+  // TODO: Add more specific tests based on component functionality
+  it('should handle user interactions', () => {
+    // Add interaction tests here
+    expect(true).toBe(true);
+  });
+});
+EOF
+}
 
 # Создание тестового файла
 create_test_file() {
