@@ -147,27 +147,31 @@ has_test_file() {
 clean_api_response() {
     local raw_response="$1"
     
-    # Убираем все до первого import или describe
-    local cleaned_response=$(echo "$raw_response" | sed -n '/^import\|^describe\|^\/\*\*\|^\/\//,$p')
+    log_info "Очищаем ответ API..."
+    log_info "Первые 200 символов ответа: $(echo "$raw_response" | head -c 200)..."
     
-    # Если не найдено ничего подходящего, ищем блок кода
-    if [[ -z "$cleaned_response" ]]; then
-        # Извлекаем код между ```typescript и ```
-        cleaned_response=$(echo "$raw_response" | sed -n '/```typescript/,/```/p' | sed '1d;$d')
+    # Убираем <think> теги и их содержимое
+    local cleaned_response=$(echo "$raw_response" | sed 's/<think>.*<\/think>//g' | sed 's/<think>.*//g')
+    
+    # Убираем объяснительные фразы в начале
+    cleaned_response=$(echo "$cleaned_response" | sed '/^Okay,\|^Let me\|^I need\|^The component\|^Wait,\|^But maybe\|^Alternatively,\|^Here\|^First,/d')
+    
+    # Ищем первый import или describe
+    local code_start=$(echo "$cleaned_response" | grep -n "^import\|^describe" | head -1 | cut -d: -f1)
+    if [[ -n "$code_start" ]]; then
+        cleaned_response=$(echo "$cleaned_response" | sed -n "${code_start},\$p")
+    else
+        # Если не найдено, ищем блоки кода
+        if echo "$cleaned_response" | grep -q '```'; then
+            # Извлекаем код между ``` 
+            cleaned_response=$(echo "$cleaned_response" | sed -n '/```typescript/,/```/p; /```jsx/,/```/p; /```javascript/,/```/p; /```/,/```/p' | sed '1d;$d' | head -n -1)
+        fi
     fi
     
-    # Если все еще пусто, ищем любой блок кода
-    if [[ -z "$cleaned_response" ]]; then
-        cleaned_response=$(echo "$raw_response" | sed -n '/```/,/```/p' | sed '1d;$d')
-    fi
+    # Убираем пустые строки в начале и конце
+    cleaned_response=$(echo "$cleaned_response" | sed '/^$/d' | sed -e :a -e '/^\s*$/d;N;ba')
     
-    # Убираем лишние объяснения в начале и конце
-    cleaned_response=$(echo "$cleaned_response" | sed '/^Okay,\|^Let me\|^I need\|^The component\|^Wait,\|^But maybe\|^Alternatively,/d')
-    
-    # Если результат все еще содержит объяснения, берем только код после последнего объяснения
-    if echo "$cleaned_response" | grep -q "^[A-Z].*\."; then
-        cleaned_response=$(echo "$cleaned_response" | sed -n '/^import\|^describe\|^test\|^it(/,$p')
-    fi
+    log_info "Очищенный ответ (первые 200 символов): $(echo "$cleaned_response" | head -c 200)..."
     
     echo "$cleaned_response"
 }
@@ -232,22 +236,32 @@ Requirements:
                         }
                     ],
                     \"model\": \"qwen-3-32b\",
-                    \"max_tokens\": 1200,
+                    \"max_tokens\": 2000,
                     \"temperature\": 0.05
                 }" 2>/dev/null)
             
             # Проверяем успешность запроса
             if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
-                api_success=true
                 log_success "Router API запрос выполнен успешно"
                 
                 # Извлекаем и очищаем содержимое ответа
                 local raw_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
+                log_info "Сырой ответ API получен, длина: ${#raw_content} символов"
+                
+                # Проверяем finish_reason
+                local finish_reason=$(echo "$response" | jq -r '.choices[0].finish_reason' 2>/dev/null)
+                log_info "Finish reason: $finish_reason"
+                
+                # Очищаем ответ
                 response=$(clean_api_response "$raw_content")
                 
-                # Если после очистки ничего не осталось, используем базовый шаблон
-                if [[ -z "$response" ]] || [[ ${#response} -lt 50 ]]; then
-                    log_warn "Очищенный ответ слишком короткий, используем базовый шаблон"
+                # Проверяем качество очищенного ответа
+                if [[ -n "$response" ]] && [[ ${#response} -gt 100 ]] && (echo "$response" | grep -q "import\|describe"); then
+                    api_success=true
+                    log_success "Получен качественный ответ от API"
+                else
+                    log_warn "Очищенный ответ некачественный или слишком короткий (${#response} символов)"
+                    log_info "Очищенный ответ: $(echo "$response" | head -c 150)..."
                     api_success=false
                 fi
             else
