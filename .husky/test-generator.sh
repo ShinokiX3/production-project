@@ -31,6 +31,7 @@ log_success() {
 
 # Проверка текущей ветки
 check_branch() {
+    # Проверяем текущую ветку
     local current_branch=$(git branch --show-current)
     log_info "Текущая ветка: $current_branch"
     
@@ -61,6 +62,7 @@ get_new_ts_files() {
 is_component_or_function() {
     local file="$1"
     
+    # Проверяем существование файла
     if [[ ! -f "$file" ]]; then
         log_error "Файл не найден: $file"
         return 1
@@ -74,8 +76,10 @@ is_component_or_function() {
         return 1
     fi
     
+    # Проверяем, содержит ли файл только типы/интерфейсы
     local only_types=true
     
+    # Ищем экспорты функций, компонентов, констант, классов
     if echo "$content" | grep -qE "(export\s+(default\s+)?(function|const|class))" || \
        echo "$content" | grep -qE "export\s*\{[^}]*\}" || \
        echo "$content" | grep -qE "React\.(FC|Component|forwardRef|memo)" || \
@@ -84,18 +88,21 @@ is_component_or_function() {
         only_types=false
     fi
     
+    # Проверяем наличие JSX/React элементов
     if echo "$content" | grep -qE "(return\s*\(.*<|return\s*<.*>)" || \
        echo "$content" | grep -qE "(<[A-Z][a-zA-Z0-9]*|<div|<span|<p\s)" || \
        echo "$content" | grep -qE "jsx|JSX"; then
         only_types=false
     fi
     
+    # Проверяем на функциональные компоненты
     if echo "$content" | grep -qE "=\s*\([^)]*\)\s*=>\s*\{" || \
        echo "$content" | grep -qE "=\s*\([^)]*\)\s*=>" || \
        echo "$content" | grep -qE "function\s+[A-Z][a-zA-Z0-9]*\s*\("; then
         only_types=false
     fi
     
+    # Если файл содержит только типы/интерфейсы - возвращаем false
     if $only_types; then
         return 1
     fi
@@ -111,6 +118,7 @@ has_test_file() {
     local basename_no_ext="${basename_full%.*}"
     local extension="${basename_full##*.}"
     
+    # Возможные паттерны тестовых файлов
     local test_patterns=(
         "$dir/$basename_no_ext.test.ts"
         "$dir/$basename_no_ext.test.tsx"
@@ -140,25 +148,27 @@ clean_api_response() {
     local raw_response="$1"
     
     log_info "Очищаем ответ API..."
+    log_info "Первые 200 символов ответа: $(echo "$raw_response" | head -c 200)..."
     
-    # Извлекаем содержимое из JSON ответа
-    local cleaned_response=$(echo "$raw_response" | jq -r '.choices[0].message.content' 2>/dev/null)
+    # Убираем <think> теги и их содержимое
+    local cleaned_response=$(echo "$raw_response" | sed 's/<think>.*<\/think>//g' | sed 's/<think>.*//g')
     
-    # Если jq не смог извлечь содержимое, возвращаем исходный ответ
-    if [[ -z "$cleaned_response" ]] || [[ "$cleaned_response" == "null" ]]; then
-        log_warn "Не удалось извлечь содержимое из ответа API"
-        cleaned_response="$raw_response"
+    # Убираем объяснительные фразы в начале
+    cleaned_response=$(echo "$cleaned_response" | sed '/^Okay,\|^Let me\|^I need\|^The component\|^Wait,\|^But maybe\|^Alternatively,\|^Here\|^First,/d')
+    
+    # Ищем первый import или describe
+    local code_start=$(echo "$cleaned_response" | grep -n "^import\|^describe" | head -1 | cut -d: -f1)
+    if [[ -n "$code_start" ]]; then
+        cleaned_response=$(echo "$cleaned_response" | sed -n "${code_start},\$p")
+    else
+        # Если не найдено, ищем блоки кода
+        if echo "$cleaned_response" | grep -q '```'; then
+            # Извлекаем код между ``` 
+            cleaned_response=$(echo "$cleaned_response" | sed -n '/```typescript/,/```/p; /```jsx/,/```/p; /```javascript/,/```/p; /```/,/```/p' | sed '1d;$d' | head -n -1)
+        fi
     fi
     
-    # Удаляем <think> теги, если они есть
-    cleaned_response=$(echo "$cleaned_response" | sed 's/<think>.*<\/think>//g' | sed 's/<think>.*//g')
-    
-    # Удаляем маркеры кода ```, если они есть
-    if echo "$cleaned_response" | grep -q '```'; then
-        cleaned_response=$(echo "$cleaned_response" | sed -n '/```typescript/,/```/p; /```jsx/,/```/p; /```javascript/,/```/p; /```/,/```/p' | sed '1d;$d' | head -n -1)
-    fi
-    
-    # Удаляем пустые строки в начале и конце
+    # Убираем пустые строки в начале и конце
     cleaned_response=$(echo "$cleaned_response" | sed '/^$/d' | sed -e :a -e '/^\s*$/d;N;ba')
     
     log_info "Очищенный ответ (первые 200 символов): $(echo "$cleaned_response" | head -c 200)..."
@@ -166,7 +176,7 @@ clean_api_response() {
     echo "$cleaned_response"
 }
 
-# Генерация тестов через Hugging Face Router API
+# Генерация тестов через новый Hugging Face Router API
 generate_tests() {
     local file="$1"
     local content
@@ -179,6 +189,7 @@ generate_tests() {
     
     log_info "Генерируем тесты для $file..."
     
+    # Подготавливаем более строгий промпт
     local prompt="Generate ONLY unit test code for this React TypeScript component. No explanations, no comments outside the code.
 
 Component code:
@@ -193,20 +204,23 @@ Requirements:
 - Test rendering and basic functionality
 - Return ONLY the test code, nothing else"
     
+    # Пытаемся использовать новый Router API
     local response=""
     local api_success=false
     
     if command -v curl >/dev/null 2>&1; then
         log_info "Попытка использовать Hugging Face Router API..."
         
+        # ВСТАВЬТЕ ВАШ ТОКЕН СЮДА:
         local hf_token="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"  # Замените на ваш реальный токен
         
         if [[ -n "$hf_token" ]]; then
             log_info "Используем авторизованный запрос к Hugging Face Router API"
             
+            # Экранируем кавычки в промпте для JSON
             local escaped_prompt=$(echo "$prompt" | sed 's/"/\\"/g' | sed 's/$/\\n/' | tr -d '\n' | sed 's/\\n$//')
             
-            response=$(timeout 120 curl -s -w "%{http_code}" \
+            response=$(timeout 60 curl -s -X POST \
                 "https://router.huggingface.co/cerebras/v1/chat/completions" \
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $hf_token" \
@@ -222,42 +236,48 @@ Requirements:
                         }
                     ],
                     \"model\": \"qwen-3-32b\",
-                    \"max_tokens\": 30000,
+                    \"max_tokens\": 2000,
                     \"temperature\": 0.05
                 }" 2>/dev/null)
             
-            http_status=${response: -3}
-            response=${response%???}
-            
-            if [[ "$http_status" -ne 200 ]]; then
-                log_error "API вернул статус $http_status"
-                log_info "Ответ: $(echo "$response" | head -c 200)..."
-                response=$(create_basic_test_template "$file" "$content")
-            elif [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
+            # Проверяем успешность запроса
+            if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
                 log_success "Router API запрос выполнен успешно"
-                echo "$response" > "/tmp/api_response_$(basename "$file").json"
-                log_info "Ответ API сохранен в /tmp/api_response_$(basename "$file").json"
                 
+                # Извлекаем и очищаем содержимое ответа
                 local raw_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
-                response=$(clean_api_response "$raw_content")
+                log_info "Сырой ответ API получен, длина: ${#raw_content} символов"
                 
-                if [[ -n "$response" ]] && [[ ${#response} -gt 100 ]] && (echo "$response" | grep -q "import\|describe"); then
-                    api_success=true
-                    log_success "Получен качественный ответ от API"
-                else
-                    log_warn "Очищенный ответ некачественный или слишком короткий (${#response} символов)"
-                    response=$(create_basic_test_template "$file" "$content")
-                fi
-            else
-                log_warn "Router API недоступен или вернул ошибку"
-                response=$(create_basic_test_template "$file" "$content")
+                # Проверяем finish_reason
+                local finish_reason=$(echo "$response" | jq -r '.choices[0].finish_reason' 2>/dev/null)
+                log_info "Finish reason: $finish_reason"
+                
+                # Очищаем ответ
+                # response=$(clean_api_response "$raw_content")
+                
+                # Проверяем качество очищенного ответа
+                # if [[ -n "$response" ]] && [[ ${#response} -gt 100 ]] && (echo "$response" | grep -q "import\|describe"); then
+                #     api_success=true
+                #     log_success "Получен качественный ответ от API"
+                # else
+                #     log_warn "Очищенный ответ некачественный или слишком короткий (${#response} символов)"
+                #     log_info "Очищенный ответ: $(echo "$response" | head -c 150)..."
+                #     api_success=false
+                # fi
+            # else
+            #     log_warn "Router API недоступен или вернул ошибку"
+            #     if [[ -n "$response" ]]; then
+            #         log_error "Ответ API: $(echo "$response" | head -c 200)..."
+            #     fi
             fi
         else
-            log_warn "Токен не найден, используем базовый шаблон"
-            response=$(create_basic_test_template "$file" "$content")
+            log_warn "Токен не найден, пропускаем API запрос"
         fi
-    else
-        log_error "curl не установлен, используем базовый шаблон"
+    fi
+    
+    # Если API не работает, создаем базовый шаблон
+    if [[ "$api_success" != true ]]; then
+        log_info "Создаем базовый шаблон теста..."
         response=$(create_basic_test_template "$file" "$content")
     fi
     
@@ -270,6 +290,7 @@ create_basic_test_template() {
     local content="$2"
     local basename_no_ext=$(basename "$file" | sed 's/\.[^.]*$//')
     
+    # Извлекаем имя экспортируемого компонента
     local component_name
     component_name=$(echo "$content" | grep -oE "export\s+(const|default)\s+[A-Z][a-zA-Z0-9]*" | head -1 | sed 's/export\s\+\(const\|default\)\s\+//')
     
@@ -320,8 +341,10 @@ create_test_file() {
     local basename_no_ext="${basename_full%.*}"
     local extension="${basename_full##*.}"
     
+    # Определяем путь для тестового файла
     local test_file="$dir/$basename_no_ext.test.$extension"
     
+    # Создаем директорию __tests__ если файл в корне компонента
     if [[ "$dir" == *"/Component"* ]] || [[ "$dir" == *"/component"* ]]; then
         if [[ ! -d "$dir/__tests__" ]]; then
             mkdir -p "$dir/__tests__"
@@ -329,23 +352,28 @@ create_test_file() {
         test_file="$dir/__tests__/$basename_no_ext.test.$extension"
     fi
     
+    # Используем содержимое напрямую, так как API уже возвращает готовый код
     local parsed_content="$test_content"
     
+    # Если содержимое пустое, используем базовый шаблон
     if [[ -z "$parsed_content" ]] || [[ "$parsed_content" == "null" ]]; then
         log_warn "Пустой ответ от генератора, используем базовый шаблон"
         parsed_content=$(create_basic_test_template "$original_file" "$(cat "$original_file")")
     fi
     
+    # Записываем тест в файл
     echo "$parsed_content" > "$test_file"
     
     log_success "Создан тестовый файл: $test_file"
     
+    # Показываем превью созданного теста
     log_info "Превью созданного теста:"
     echo -e "${YELLOW}$(head -15 "$test_file")${NC}"
     if [[ $(wc -l < "$test_file") -gt 15 ]]; then
         echo -e "${YELLOW}... (остальное в файле)${NC}"
     fi
     
+    # Пытаемся открыть в IDE
     if command -v code &> /dev/null; then
         code "$test_file" 2>/dev/null &
         log_info "Попытка открыть файл в VS Code"
@@ -361,8 +389,10 @@ create_test_file() {
 main() {
     log_info "Запуск Husky pre-commit hook..."
     
+    # 1. Проверяем ветку
     check_branch
     
+    # 2. Получаем новые .ts/.tsx файлы
     local new_files_raw
     new_files_raw=$(get_new_ts_files)
     
@@ -371,6 +401,7 @@ main() {
         exit 0
     fi
     
+    # Преобразуем в массив, корректно обрабатывая файлы с пробелами
     local new_files=()
     while IFS= read -r file; do
         if [[ -n "$file" ]]; then
@@ -383,6 +414,7 @@ main() {
         log_info "  - $file"
     done
     
+    # 3. Фильтруем только компоненты и функции
     local component_files=()
     for file in "${new_files[@]}"; do
         log_info "Анализируем файл: $file"
@@ -399,6 +431,7 @@ main() {
         exit 0
     fi
     
+    # 4. Проверяем наличие тестов
     local files_without_tests=()
     for file in "${component_files[@]}"; do
         if ! has_test_file "$file"; then
@@ -411,11 +444,13 @@ main() {
         exit 0
     fi
     
+    # 5. Автоматически создаем тесты для файлов без тестов
     log_info "Следующие файлы не имеют тестов, создаем автоматически:"
     for file in "${files_without_tests[@]}"; do
         echo "  - $file"
     done
     
+    # 6. Генерируем тесты
     local created_tests=()
     for file in "${files_without_tests[@]}"; do
         log_info "Обработка файла: $file"
@@ -425,10 +460,12 @@ main() {
         
         if [[ -f "$test_file" ]]; then
             created_tests+=("$test_file")
+            # Добавляем тестовый файл в git
             git add "$test_file"
         fi
     done
     
+    # 7. Если тесты созданы - блокируем коммит
     if [[ ${#created_tests[@]} -gt 0 ]]; then
         log_success "Созданы тестовые файлы:"
         for test in "${created_tests[@]}"; do
