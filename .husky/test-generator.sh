@@ -143,39 +143,6 @@ has_test_file() {
     return 1
 }
 
-# Очистка ответа от лишнего текста
-clean_api_response() {
-    local raw_response="$1"
-    
-    log_info "Очищаем ответ API..."
-    log_info "Первые 200 символов ответа: $(echo "$raw_response" | head -c 200)..."
-    
-    # Убираем <think> теги и их содержимое
-    local cleaned_response=$(echo "$raw_response" | sed 's/<think>.*<\/think>//g' | sed 's/<think>.*//g')
-    
-    # Убираем объяснительные фразы в начале
-    cleaned_response=$(echo "$cleaned_response" | sed '/^Okay,\|^Let me\|^I need\|^The component\|^Wait,\|^But maybe\|^Alternatively,\|^Here\|^First,/d')
-    
-    # Ищем первый import или describe
-    local code_start=$(echo "$cleaned_response" | grep -n "^import\|^describe" | head -1 | cut -d: -f1)
-    if [[ -n "$code_start" ]]; then
-        cleaned_response=$(echo "$cleaned_response" | sed -n "${code_start},\$p")
-    else
-        # Если не найдено, ищем блоки кода
-        if echo "$cleaned_response" | grep -q '```'; then
-            # Извлекаем код между ``` 
-            cleaned_response=$(echo "$cleaned_response" | sed -n '/```typescript/,/```/p; /```jsx/,/```/p; /```javascript/,/```/p; /```/,/```/p' | sed '1d;$d' | head -n -1)
-        fi
-    fi
-    
-    # Убираем пустые строки в начале и конце
-    cleaned_response=$(echo "$cleaned_response" | sed '/^$/d' | sed -e :a -e '/^\s*$/d;N;ba')
-    
-    log_info "Очищенный ответ (первые 200 символов): $(echo "$cleaned_response" | head -c 200)..."
-    
-    echo "$cleaned_response"
-}
-
 # Генерация тестов через новый Hugging Face Router API
 generate_tests() {
     local file="$1"
@@ -189,20 +156,17 @@ generate_tests() {
     
     log_info "Генерируем тесты для $file..."
     
-    # Подготавливаем более строгий промпт
-    local prompt="Generate ONLY unit test code for this React TypeScript component. No explanations, no comments outside the code.
+    # Подготавливаем промпт
+    local prompt="Create comprehensive unit tests for this React TypeScript component using Jest and React Testing Library.
 
-Component code:
+File: $(basename "$file")
+
+Code:
 \`\`\`typescript
 $content
 \`\`\`
 
-Requirements:
-- Use Jest and React Testing Library
-- Start with imports
-- Include describe block with component name
-- Test rendering and basic functionality
-- Return ONLY the test code, nothing else"
+Generate only the test code in Jest format with proper imports and test cases. Return only the test code without any explanations."
     
     # Пытаемся использовать новый Router API
     local response=""
@@ -228,7 +192,7 @@ Requirements:
                     \"messages\": [
                         {
                             \"role\": \"system\",
-                            \"content\": \"You are a code generator. Generate ONLY test code without any explanations or markdown. Start directly with imports.\"
+                            \"content\": \"You are a helpful assistant that generates unit tests for React TypeScript components. Generate only the test code without explanations.\"
                         },
                         {
                             \"role\": \"user\",
@@ -236,39 +200,22 @@ Requirements:
                         }
                     ],
                     \"model\": \"qwen-3-32b\",
-                    \"max_tokens\": 2000,
-                    \"temperature\": 0.05
+                    \"max_tokens\": 1500,
+                    \"temperature\": 0.1
                 }" 2>/dev/null)
             
             # Проверяем успешность запроса
             if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
+                api_success=true
                 log_success "Router API запрос выполнен успешно"
                 
-                # Извлекаем и очищаем содержимое ответа
-                local raw_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
-                log_info "Сырой ответ API получен, длина: ${#raw_content} символов"
-                
-                # Проверяем finish_reason
-                local finish_reason=$(echo "$response" | jq -r '.choices[0].finish_reason' 2>/dev/null)
-                log_info "Finish reason: $finish_reason"
-                
-                # Очищаем ответ
-                # response=$(clean_api_response "$raw_content")
-                
-                # Проверяем качество очищенного ответа
-                # if [[ -n "$response" ]] && [[ ${#response} -gt 100 ]] && (echo "$response" | grep -q "import\|describe"); then
-                #     api_success=true
-                #     log_success "Получен качественный ответ от API"
-                # else
-                #     log_warn "Очищенный ответ некачественный или слишком короткий (${#response} символов)"
-                #     log_info "Очищенный ответ: $(echo "$response" | head -c 150)..."
-                #     api_success=false
-                # fi
-            # else
-            #     log_warn "Router API недоступен или вернул ошибку"
-            #     if [[ -n "$response" ]]; then
-            #         log_error "Ответ API: $(echo "$response" | head -c 200)..."
-            #     fi
+                # Извлекаем содержимое ответа
+                response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
+            else
+                log_warn "Router API недоступен или вернул ошибку"
+                if [[ -n "$response" ]]; then
+                    log_error "Ответ API: $response"
+                fi
             fi
         else
             log_warn "Токен не найден, пропускаем API запрос"
