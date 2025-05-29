@@ -217,6 +217,10 @@ Generate only the test code in Jest format with proper imports and test cases. R
                     log_error "Ответ API: $response"
                 fi
             fi
+
+            if [[ -n "$test_content" ]] && [[ "$test_content" != "null" ]] && [[ "$test_content" != "" ]]; then
+                api_success=true
+            fi
         else
             log_warn "Токен не найден, пропускаем API запрос"
         fi
