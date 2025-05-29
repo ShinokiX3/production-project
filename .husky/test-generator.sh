@@ -58,24 +58,24 @@ get_new_ts_files() {
 }
 
 # Проверка, является ли файл компонентом или функцией (не просто типами)
-is_component_or_function() {
-    local file="$1"
-    local content=$(cat "$file")
+# is_component_or_function() {
+#     local file="$1"
+#     local content=$(cat "$file")
     
-    # Проверяем наличие экспорта функций, компонентов, классов
-    if echo "$content" | grep -qE "(export\s+(default\s+)?(function|const|class)|export\s+\{|React\.FC|React\.Component|\.forwardRef\()" && \
-       ! echo "$content" | grep -qE "^(export\s+)?(type|interface)\s+\w+"; then
-        return 0
-    fi
+#     # Проверяем наличие экспорта функций, компонентов, классов
+#     if echo "$content" | grep -qE "(export\s+(default\s+)?(function|const|class)|export\s+\{|React\.FC|React\.Component|\.forwardRef\()" && \
+#        ! echo "$content" | grep -qE "^(export\s+)?(type|interface)\s+\w+"; then
+#         return 0
+#     fi
     
-    # Дополнительная проверка на React компоненты
-    if echo "$content" | grep -qE "(return\s*\(.*<|return\s*<|\}\s*\)\s*$)" && \
-       echo "$content" | grep -qE "(React|JSX)"; then
-        return 0
-    fi
+#     # Дополнительная проверка на React компоненты
+#     if echo "$content" | grep -qE "(return\s*\(.*<|return\s*<|\}\s*\)\s*$)" && \
+#        echo "$content" | grep -qE "(React|JSX)"; then
+#         return 0
+#     fi
     
-    return 1
-}
+#     return 1
+# }
 
 # Проверка существования тестового файла
 has_test_file() {
