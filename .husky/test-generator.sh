@@ -170,7 +170,6 @@ Generate only the test code in Jest format with proper imports and test cases. R
     
     # Пытаемся использовать новый Router API
     local response=""
-    local test_content=""
     local api_success=false
     
     if command -v curl >/dev/null 2>&1; then
@@ -205,89 +204,79 @@ Generate only the test code in Jest format with proper imports and test cases. R
                     \"temperature\": 0.1
                 }" 2>/dev/null)
             
-            # Проверяем успешность запроса и извлекаем контент
-            if [[ -n "$response" ]]; then
-                # Проверяем, что это валидный JSON с нужной структурой
-                if echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
-                    test_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
-                    
-                    # Дополнительная проверка: убеждаемся, что контент не пустой и не null
-                    if [[ -n "$test_content" ]] && [[ "$test_content" != "null" ]] && [[ "$test_content" != "" ]]; then
-                        api_success=true
-                        log_success "Router API запрос выполнен успешно"
-                        log_info "Получен контент длиной: $(echo "$test_content" | wc -c) символов"
-                    else
-                        log_warn "API вернул пустой или null контент"
-                    fi
-                else
-                    log_warn "Router API вернул невалидный JSON или структуру"
-                    if [[ -n "$response" ]]; then
-                        log_error "Ответ API: $(echo "$response" | head -c 200)..."
-                    fi
-                fi
+            # Проверяем успешность запроса
+            if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
+                api_success=true
+                log_success "Router API запрос выполнен успешно"
+                
+                # Извлекаем содержимое ответа
+                response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
             else
-                log_warn "Router API не вернул ответ"
+                log_warn "Router API недоступен или вернул ошибку"
+                if [[ -n "$response" ]]; then
+                    log_error "Ответ API: $response"
+                fi
             fi
         else
             log_warn "Токен не найден, пропускаем API запрос"
         fi
     fi
     
-    # Если API не сработал, создаем базовый шаблон
+    # Если API не работает, создаем базовый шаблон
     if [[ "$api_success" != true ]]; then
         log_info "Создаем базовый шаблон теста..."
-        test_content=$(create_basic_test_template "$file" "$content")
+        response=$(create_basic_test_template "$file" "$content")
     fi
     
-    echo "$test_content"
+    echo "$response"
 }
 
-# Создание базового шаблона теста
-create_basic_test_template() {
-    local file="$1"
-    local content="$2"
-    local basename_no_ext=$(basename "$file" | sed 's/\.[^.]*$//')
+# # Создание базового шаблона теста
+# create_basic_test_template() {
+#     local file="$1"
+#     local content="$2"
+#     local basename_no_ext=$(basename "$file" | sed 's/\.[^.]*$//')
     
-    # Извлекаем имя экспортируемого компонента
-    local component_name
-    component_name=$(echo "$content" | grep -oE "export\s+(const|default)\s+[A-Z][a-zA-Z0-9]*" | head -1 | sed 's/export\s\+\(const\|default\)\s\+//')
+#     # Извлекаем имя экспортируемого компонента
+#     local component_name
+#     component_name=$(echo "$content" | grep -oE "export\s+(const|default)\s+[A-Z][a-zA-Z0-9]*" | head -1 | sed 's/export\s\+\(const\|default\)\s\+//')
     
-    if [[ -z "$component_name" ]]; then
-        component_name="$basename_no_ext"
-    fi
+#     if [[ -z "$component_name" ]]; then
+#         component_name="$basename_no_ext"
+#     fi
     
-    cat << EOF
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { $component_name } from './$basename_no_ext';
+#     cat << EOF
+# import React from 'react';
+# import { render, screen } from '@testing-library/react';
+# import '@testing-library/jest-dom';
+# import { $component_name } from './$basename_no_ext';
 
-describe('$component_name', () => {
-  it('should render without crashing', () => {
-    render(<$component_name />);
-    expect(document.body).toBeInTheDocument();
-  });
+# describe('$component_name', () => {
+#   it('should render without crashing', () => {
+#     render(<$component_name />);
+#     expect(document.body).toBeInTheDocument();
+#   });
 
-  it('should render with provided props', () => {
-    const testProps = {
-      className: 'test-class',
-      'data-testid': 'test-component'
-    };
+#   it('should render with provided props', () => {
+#     const testProps = {
+#       className: 'test-class',
+#       'data-testid': 'test-component'
+#     };
     
-    render(<$component_name {...testProps} />);
-    const element = screen.getByTestId('test-component');
-    expect(element).toBeInTheDocument();
-    expect(element).toHaveClass('test-class');
-  });
+#     render(<$component_name {...testProps} />);
+#     const element = screen.getByTestId('test-component');
+#     expect(element).toBeInTheDocument();
+#     expect(element).toHaveClass('test-class');
+#   });
 
-  // TODO: Add more specific tests based on component functionality
-  it('should handle user interactions', () => {
-    // Add interaction tests here
-    expect(true).toBe(true);
-  });
-});
-EOF
-}
+#   // TODO: Add more specific tests based on component functionality
+#   it('should handle user interactions', () => {
+#     // Add interaction tests here
+#     expect(true).toBe(true);
+#   });
+# });
+# EOF
+# }
 
 # Создание тестового файла
 create_test_file() {
