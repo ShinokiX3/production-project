@@ -3,3 +3,4 @@
 
 # npm run lint:ts
 # npm run test:unit
+bash .husky/test-generator.sh
