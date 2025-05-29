@@ -143,24 +143,6 @@ has_test_file() {
     return 1
 }
 
-# Очистка содержимого теста от лишнего форматирования
-clean_test_content() {
-    local content="$1"
-    
-    # Удаляем markdown блоки кода
-    content=$(echo "$content" | sed 's/^```[a-zA-Z]*//g' | sed 's/```$//g')
-    
-    # Удаляем лишние пробелы в начале и конце
-    content=$(echo "$content" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
-    
-    # Если контент начинается не с import или describe, возможно нужна дополнительная очистка
-    if [[ ! "$content" =~ ^(import|describe|\/\/|\/\*) ]]; then
-        log_warn "Содержимое теста может быть некорректным, проверьте результат"
-    fi
-    
-    echo "$content"
-}
-
 # Генерация тестов через новый Hugging Face Router API
 generate_tests() {
     local file="$1"
@@ -222,50 +204,18 @@ Generate only the test code in Jest format with proper imports and test cases. R
                     \"temperature\": 0.1
                 }" 2>/dev/null)
             
-            # Проверяем успешность запроса и наличие данных
-            if [[ -n "$response" ]]; then
-                log_info "Получен ответ от API, проверяем структуру..."
+            # Проверяем успешность запроса
+            if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
+                api_success=true
+                log_success "Router API запрос выполнен успешно"
                 
-                # Проверяем, есть ли поле choices в ответе
-                if echo "$response" | jq -e '.choices' >/dev/null 2>&1; then
-                    # Извлекаем содержимое ответа
-                    local extracted_content
-                    extracted_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
-                    
-                    if [[ -n "$extracted_content" ]] && [[ "$extracted_content" != "null" ]]; then
-                        log_success "Успешно извлечен тест из ответа API"
-                        
-                        # Очищаем тест от markdown разметки и лишнего форматирования
-                        extracted_content=$(clean_test_content "$extracted_content")
-                        
-                        # Убираем лишние пробелы в начале и конце
-                        extracted_content=$(echo "$extracted_content" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
-                        
-                        api_success=true
-                        response="$extracted_content"
-                        
-                        log_info "Предварительный просмотр сгенерированного теста:"
-                        echo -e "${GREEN}$(echo "$response" | head -10)${NC}"
-                        if [[ $(echo "$response" | wc -l) -gt 10 ]]; then
-                            echo -e "${GREEN}... (показаны первые 10 строк)${NC}"
-                        fi
-                    else
-                        log_warn "Не удалось извлечь содержимое из ответа API"
-                        log_error "Извлеченное содержимое: '$extracted_content'"
-                    fi
-                else
-                    log_warn "Ответ API не содержит поле 'choices'"
-                    log_error "Структура ответа: $(echo "$response" | jq -r 'keys' 2>/dev/null || echo "Не удалось определить структуру")"
-                fi
+                # Извлекаем содержимое ответа
+                response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
             else
-                log_warn "Пустой ответ от API"
-            fi
-            
-            # Показываем полный ответ для отладки только если он не успешный
-            if [[ "$api_success" != true ]] && [[ -n "$response" ]]; then
-                log_error "Полный ответ API для отладки:"
-                echo "$response" | head -5
-                echo "..."
+                log_warn "Router API недоступен или вернул ошибку"
+                if [[ -n "$response" ]]; then
+                    log_error "Ответ API: $response"
+                fi
             fi
         else
             log_warn "Токен не найден, пропускаем API запрос"
