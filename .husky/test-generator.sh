@@ -170,7 +170,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
     
     # Пытаемся использовать новый Router API
     local response=""
-    local api_success=false
+    local api_success=true
     
     if command -v curl >/dev/null 2>&1; then
         log_info "Попытка использовать Hugging Face Router API..."
