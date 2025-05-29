@@ -154,7 +154,7 @@ generate_tests() {
         return 1
     fi
     
-    log_info "Генерируем тесты для $file..."
+    # log_info "Генерируем тесты для $file..."
     
     # Подготавливаем промпт
     local prompt="Create comprehensive unit tests for this React TypeScript component using Jest and React Testing Library.
@@ -212,7 +212,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
                 # Извлекаем содержимое ответа
                 response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
             else
-                log_warn "Router API недоступен или вернул ошибку"
+                # log_warn "Router API недоступен или вернул ошибку"
                 if [[ -n "$response" ]]; then
                     log_error "Ответ API: $response"
                 fi
@@ -228,7 +228,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
         response=$(create_basic_test_template "$file" "$content")
     fi
     
-    echo "$response"
+    # echo "$response"
 }
 
 # Создание базового шаблона теста
