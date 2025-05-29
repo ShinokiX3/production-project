@@ -229,7 +229,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
         response=$(create_basic_test_template "$file" "$content")
     fi
     
-    # echo "$response"
+    echo "$response"
 }
 
 # Создание базового шаблона теста
