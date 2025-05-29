@@ -207,41 +207,33 @@ Generate only the test code in Jest format with proper imports and test cases. R
             
             # Проверяем успешность запроса и извлекаем контент
             if [[ -n "$response" ]]; then
-                log_info "Получен ответ от API, проверяем структуру..."
-                
                 # Проверяем, что это валидный JSON с нужной структурой
                 if echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
                     test_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
                     
-                    # Проверяем, что контент не пустой и содержит код
+                    # Дополнительная проверка: убеждаемся, что контент не пустой и не null
                     if [[ -n "$test_content" ]] && [[ "$test_content" != "null" ]] && [[ "$test_content" != "" ]]; then
-                        # Убираем возможные markdown блоки кода
-                        test_content=$(echo "$test_content" | sed 's/^```[a-zA-Z]*$//' | sed 's/^```$//')
-                        
-                        # Проверяем, что это похоже на тестовый код
-                        if echo "$test_content" | grep -qE "(describe|test|it)\s*\(" && echo "$test_content" | grep -qE "import.*react"; then
-                            api_success=true
-                            log_success "API запрос выполнен успешно, получен валидный тест"
-                        else
-                            log_warn "Полученный контент не похож на валидный тест"
-                            log_info "Первые 200 символов: $(echo "$test_content" | head -c 200)..."
-                        fi
+                        api_success=true
+                        log_success "Router API запрос выполнен успешно"
+                        log_info "Получен контент длиной: $(echo "$test_content" | wc -c) символов"
                     else
                         log_warn "API вернул пустой или null контент"
                     fi
                 else
-                    log_warn "API вернул невалидный JSON или неожиданную структуру"
-                    log_error "Ответ API: $(echo "$response" | head -c 500)..."
+                    log_warn "Router API вернул невалидный JSON или структуру"
+                    if [[ -n "$response" ]]; then
+                        log_error "Ответ API: $(echo "$response" | head -c 200)..."
+                    fi
                 fi
             else
-                log_warn "API не вернул ответ"
+                log_warn "Router API не вернул ответ"
             fi
         else
             log_warn "Токен не найден, пропускаем API запрос"
         fi
     fi
     
-    # Если API не работает или вернул невалидный результат, создаем базовый шаблон
+    # Если API не сработал, создаем базовый шаблон
     if [[ "$api_success" != true ]]; then
         log_info "Создаем базовый шаблон теста..."
         test_content=$(create_basic_test_template "$file" "$content")
