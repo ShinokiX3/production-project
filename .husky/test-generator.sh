@@ -154,8 +154,6 @@ generate_tests() {
         return 1
     fi
     
-    log_info "Генерируем тесты для $file..."
-    
     # Подготавливаем промпт
     local prompt="Create comprehensive unit tests for this React TypeScript component using Jest and React Testing Library.
 
@@ -170,17 +168,14 @@ Generate only the test code in Jest format with proper imports and test cases. R
     
     # Пытаемся использовать новый Router API
     local response=""
+    local test_content=""
     local api_success=false
     
     if command -v curl >/dev/null 2>&1; then
-        log_info "Попытка использовать Hugging Face Router API..."
-        
         # ВСТАВЬТЕ ВАШ ТОКЕН СЮДА:
         local hf_token="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"  # Замените на ваш реальный токен
         
         if [[ -n "$hf_token" ]]; then
-            log_info "Используем авторизованный запрос к Hugging Face Router API"
-            
             # Экранируем кавычки в промпте для JSON
             local escaped_prompt=$(echo "$prompt" | sed 's/"/\\"/g' | sed 's/$/\\n/' | tr -d '\n' | sed 's/\\n$//')
             
@@ -204,31 +199,27 @@ Generate only the test code in Jest format with proper imports and test cases. R
                     \"temperature\": 0.1
                 }" 2>/dev/null)
             
-            # Проверяем успешность запроса
-            if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
-                api_success=true
-                log_success "Router API запрос выполнен успешно"
-                
-                # Извлекаем содержимое ответа
-                response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
-            else
-                log_warn "Router API недоступен или вернул ошибку"
-                if [[ -n "$response" ]]; then
-                    log_error "Ответ API: $response"
+            # Проверяем успешность запроса и извлекаем контент
+            if [[ -n "$response" ]]; then
+                # Проверяем, что это валидный JSON с нужной структурой
+                if echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
+                    test_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
+                    
+                    # Дополнительная проверка: убеждаемся, что контент не пустой и не null
+                    if [[ -n "$test_content" ]] && [[ "$test_content" != "null" ]] && [[ "$test_content" != "" ]]; then
+                        api_success=true
+                    fi
                 fi
             fi
-        else
-            log_warn "Токен не найден, пропускаем API запрос"
         fi
     fi
     
-    # Если API не работает, создаем базовый шаблон
+    # Если API не сработал, создаем базовый шаблон
     if [[ "$api_success" != true ]]; then
-        log_info "Создаем базовый шаблон теста..."
-        response=$(create_basic_test_template "$file" "$content")
+        test_content=$(create_basic_test_template "$file" "$content")
     fi
     
-    echo "$response"
+    echo "$test_content"
 }
 
 # # Создание базового шаблона теста
