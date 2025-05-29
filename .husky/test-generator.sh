@@ -35,8 +35,8 @@ check_branch() {
     log_info "Текущая ветка: $current_branch"
     
     # if [[ ! $current_branch =~ ^FEDS- ]]; then
-    if [[ ! $current_branch =~ ^main ]]; then
-        log_warn "Ветка не начинается с 'main', пропускаем проверки"
+    if [[ ! $current_branch =~ ^master ]]; then
+        log_warn "Ветка не начинается с 'master', пропускаем проверки"
         exit 0
     fi
     
