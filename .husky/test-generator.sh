@@ -143,6 +143,35 @@ has_test_file() {
     return 1
 }
 
+# Очистка ответа от лишнего текста
+clean_api_response() {
+    local raw_response="$1"
+    
+    # Убираем все до первого import или describe
+    local cleaned_response=$(echo "$raw_response" | sed -n '/^import\|^describe\|^\/\*\*\|^\/\//,$p')
+    
+    # Если не найдено ничего подходящего, ищем блок кода
+    if [[ -z "$cleaned_response" ]]; then
+        # Извлекаем код между ```typescript и ```
+        cleaned_response=$(echo "$raw_response" | sed -n '/```typescript/,/```/p' | sed '1d;$d')
+    fi
+    
+    # Если все еще пусто, ищем любой блок кода
+    if [[ -z "$cleaned_response" ]]; then
+        cleaned_response=$(echo "$raw_response" | sed -n '/```/,/```/p' | sed '1d;$d')
+    fi
+    
+    # Убираем лишние объяснения в начале и конце
+    cleaned_response=$(echo "$cleaned_response" | sed '/^Okay,\|^Let me\|^I need\|^The component\|^Wait,\|^But maybe\|^Alternatively,/d')
+    
+    # Если результат все еще содержит объяснения, берем только код после последнего объяснения
+    if echo "$cleaned_response" | grep -q "^[A-Z].*\."; then
+        cleaned_response=$(echo "$cleaned_response" | sed -n '/^import\|^describe\|^test\|^it(/,$p')
+    fi
+    
+    echo "$cleaned_response"
+}
+
 # Генерация тестов через новый Hugging Face Router API
 generate_tests() {
     local file="$1"
@@ -156,17 +185,20 @@ generate_tests() {
     
     log_info "Генерируем тесты для $file..."
     
-    # Подготавливаем промпт
-    local prompt="Create comprehensive unit tests for this React TypeScript component using Jest and React Testing Library.
+    # Подготавливаем более строгий промпт
+    local prompt="Generate ONLY unit test code for this React TypeScript component. No explanations, no comments outside the code.
 
-File: $(basename "$file")
-
-Code:
+Component code:
 \`\`\`typescript
 $content
 \`\`\`
 
-Generate only the test code in Jest format with proper imports and test cases. Return only the test code without any explanations."
+Requirements:
+- Use Jest and React Testing Library
+- Start with imports
+- Include describe block with component name
+- Test rendering and basic functionality
+- Return ONLY the test code, nothing else"
     
     # Пытаемся использовать новый Router API
     local response=""
@@ -192,7 +224,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
                     \"messages\": [
                         {
                             \"role\": \"system\",
-                            \"content\": \"You are a helpful assistant that generates unit tests for React TypeScript components. Generate only the test code without explanations.\"
+                            \"content\": \"You are a code generator. Generate ONLY test code without any explanations or markdown. Start directly with imports.\"
                         },
                         {
                             \"role\": \"user\",
@@ -200,8 +232,8 @@ Generate only the test code in Jest format with proper imports and test cases. R
                         }
                     ],
                     \"model\": \"qwen-3-32b\",
-                    \"max_tokens\": 1500,
-                    \"temperature\": 0.1
+                    \"max_tokens\": 1200,
+                    \"temperature\": 0.05
                 }" 2>/dev/null)
             
             # Проверяем успешность запроса
@@ -209,12 +241,19 @@ Generate only the test code in Jest format with proper imports and test cases. R
                 api_success=true
                 log_success "Router API запрос выполнен успешно"
                 
-                # Извлекаем содержимое ответа
-                response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
+                # Извлекаем и очищаем содержимое ответа
+                local raw_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
+                response=$(clean_api_response "$raw_content")
+                
+                # Если после очистки ничего не осталось, используем базовый шаблон
+                if [[ -z "$response" ]] || [[ ${#response} -lt 50 ]]; then
+                    log_warn "Очищенный ответ слишком короткий, используем базовый шаблон"
+                    api_success=false
+                fi
             else
                 log_warn "Router API недоступен или вернул ошибку"
                 if [[ -n "$response" ]]; then
-                    log_error "Ответ API: $response"
+                    log_error "Ответ API: $(echo "$response" | head -c 200)..."
                 fi
             fi
         else
