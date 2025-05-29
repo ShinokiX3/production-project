@@ -147,7 +147,7 @@ has_test_file() {
 generate_tests() {
     local file="$1"
     local content
-    # content=$(cat "$file" 2>/dev/null)
+    content=$(cat "$file" 2>/dev/null)
     
     if [[ -z "$content" ]]; then
         log_error "Не удалось прочитать файл: $file"
@@ -188,7 +188,8 @@ Generate only the test code in Jest format with proper imports and test cases."
         fi
         
         response=$(timeout 30 curl -s -X POST \
-            "https://api-inference.huggingface.co/models/bigcode/starcoder" \
+            # "https://api-inference.huggingface.co/models/bigcode/starcoder" \
+            "https://huggingface.co/spaces/bigcode/bigcode-playground" \
             -H "Content-Type: application/json" \
             $auth_header \
             -d "{
