@@ -170,6 +170,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
     
     # Пытаемся использовать новый Router API
     local response=""
+    local test_content=""
     local api_success=false
     
     if command -v curl >/dev/null 2>&1; then
@@ -204,31 +205,49 @@ Generate only the test code in Jest format with proper imports and test cases. R
                     \"temperature\": 0.1
                 }" 2>/dev/null)
             
-            # Проверяем успешность запроса
-            if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
-                api_success=true
-                log_success "Router API запрос выполнен успешно"
+            # Проверяем успешность запроса и извлекаем контент
+            if [[ -n "$response" ]]; then
+                log_info "Получен ответ от API, проверяем структуру..."
                 
-                # Извлекаем содержимое ответа
-                response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
-            else
-                log_warn "Router API недоступен или вернул ошибку"
-                if [[ -n "$response" ]]; then
-                    log_error "Ответ API: $response"
+                # Проверяем, что это валидный JSON с нужной структурой
+                if echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
+                    test_content=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
+                    
+                    # Проверяем, что контент не пустой и содержит код
+                    if [[ -n "$test_content" ]] && [[ "$test_content" != "null" ]] && [[ "$test_content" != "" ]]; then
+                        # Убираем возможные markdown блоки кода
+                        test_content=$(echo "$test_content" | sed 's/^```[a-zA-Z]*$//' | sed 's/^```$//')
+                        
+                        # Проверяем, что это похоже на тестовый код
+                        if echo "$test_content" | grep -qE "(describe|test|it)\s*\(" && echo "$test_content" | grep -qE "import.*react"; then
+                            api_success=true
+                            log_success "API запрос выполнен успешно, получен валидный тест"
+                        else
+                            log_warn "Полученный контент не похож на валидный тест"
+                            log_info "Первые 200 символов: $(echo "$test_content" | head -c 200)..."
+                        fi
+                    else
+                        log_warn "API вернул пустой или null контент"
+                    fi
+                else
+                    log_warn "API вернул невалидный JSON или неожиданную структуру"
+                    log_error "Ответ API: $(echo "$response" | head -c 500)..."
                 fi
+            else
+                log_warn "API не вернул ответ"
             fi
         else
             log_warn "Токен не найден, пропускаем API запрос"
         fi
     fi
     
-    # Если API не работает, создаем базовый шаблон
+    # Если API не работает или вернул невалидный результат, создаем базовый шаблон
     if [[ "$api_success" != true ]]; then
         log_info "Создаем базовый шаблон теста..."
-        response=$(create_basic_test_template "$file" "$content")
+        test_content=$(create_basic_test_template "$file" "$content")
     fi
     
-    echo "$response"
+    echo "$test_content"
 }
 
 # Создание базового шаблона теста
