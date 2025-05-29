@@ -185,7 +185,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
             local escaped_prompt=$(echo "$prompt" | sed 's/"/\\"/g' | sed 's/$/\\n/' | tr -d '\n' | sed 's/\\n$//')
             
             response=$(timeout 60 curl -s -X POST \
-                "https://router.huggingface.co/cerebras/v1/chat/completions" \
+                "https://router.huggingface.co/cohere/compatibility/v1/chat/completions" \
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $hf_token" \
                 -d "{
@@ -199,7 +199,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
                             \"content\": \"$escaped_prompt\"
                         }
                     ],
-                    \"model\": \"qwen-3-32b\",
+                    \"model\": \"c4ai-aya-expanse-8b\",
                     \"max_tokens\": 1500,
                     \"temperature\": 0.1
                 }" 2>/dev/null)
