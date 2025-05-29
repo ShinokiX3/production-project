@@ -154,7 +154,7 @@ generate_tests() {
         return 1
     fi
     
-    # log_info "Генерируем тесты для $file..."
+    log_info "Генерируем тесты для $file..."
     
     # Подготавливаем промпт
     local prompt="Create comprehensive unit tests for this React TypeScript component using Jest and React Testing Library.
@@ -173,13 +173,13 @@ Generate only the test code in Jest format with proper imports and test cases. R
     local api_success=false
     
     if command -v curl >/dev/null 2>&1; then
-        # log_info "Попытка использовать Hugging Face Router API..."
+        log_info "Попытка использовать Hugging Face Router API..."
         
         # ВСТАВЬТЕ ВАШ ТОКЕН СЮДА:
         local hf_token="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"  # Замените на ваш реальный токен
         
         if [[ -n "$hf_token" ]]; then
-            # log_info "Используем авторизованный запрос к Hugging Face Router API"
+            log_info "Используем авторизованный запрос к Hugging Face Router API"
             
             # Экранируем кавычки в промпте для JSON
             local escaped_prompt=$(echo "$prompt" | sed 's/"/\\"/g' | sed 's/$/\\n/' | tr -d '\n' | sed 's/\\n$//')
@@ -207,17 +207,16 @@ Generate only the test code in Jest format with proper imports and test cases. R
             # Проверяем успешность запроса
             if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
                 api_success=true
-                # log_success "Router API запрос выполнен успешно"
+                log_success "Router API запрос выполнен успешно"
                 
                 # Извлекаем содержимое ответа
                 response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
             else
-                # log_warn "Router API недоступен или вернул ошибку"
+                log_warn "Router API недоступен или вернул ошибку"
                 if [[ -n "$response" ]]; then
                     log_error "Ответ API: $response"
                 fi
             fi
-            
         else
             log_warn "Токен не найден, пропускаем API запрос"
         fi
@@ -225,7 +224,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
     
     # Если API не работает, создаем базовый шаблон
     if [[ "$api_success" != true ]]; then
-        # log_info "Создаем базовый шаблон теста..."
+        log_info "Создаем базовый шаблон теста..."
         response=$(create_basic_test_template "$file" "$content")
     fi
     
