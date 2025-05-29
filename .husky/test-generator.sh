@@ -214,8 +214,7 @@ Generate only the test code in Jest format with proper imports and test cases. R
             else
                 log_warn "Router API недоступен или вернул ошибку"
                 if [[ -n "$response" ]]; then
-                    echo ""
-                    # log_error "Ответ API: $response"
+                    log_error "Ответ API: $response"
                 fi
             fi
         else
