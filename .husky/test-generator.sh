@@ -147,7 +147,7 @@ has_test_file() {
 generate_tests() {
     local file="$1"
     local content
-    content=$(cat "$file" 2>/dev/null)
+    # content=$(cat "$file" 2>/dev/null)
     
     if [[ -z "$content" ]]; then
         log_error "Не удалось прочитать файл: $file"
