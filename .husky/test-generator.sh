@@ -143,7 +143,7 @@ has_test_file() {
     return 1
 }
 
-# Генерация тестов через Hugging Face API
+# Генерация тестов через новый Hugging Face Router API
 generate_tests() {
     local file="$1"
     local content
@@ -166,46 +166,59 @@ Code:
 $content
 \`\`\`
 
-Generate only the test code in Jest format with proper imports and test cases."
+Generate only the test code in Jest format with proper imports and test cases. Return only the test code without any explanations."
     
-    # Пытаемся использовать API (с таймаутом)
+    # Пытаемся использовать новый Router API
     local response=""
     local api_success=false
     
-    # Попытка 1: Hugging Face Inference API
     if command -v curl >/dev/null 2>&1; then
-        log_info "Попытка использовать Hugging Face API..."
+        log_info "Попытка использовать Hugging Face Router API..."
         
         # ВСТАВЬТЕ ВАШ ТОКЕН СЮДА:
         local hf_token="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"  # Замените на ваш реальный токен
-        local auth_header=""
         
         if [[ -n "$hf_token" ]]; then
-            auth_header="-H \"Authorization: Bearer $hf_token\""
-            log_info "Используем авторизованный запрос к Hugging Face"
+            log_info "Используем авторизованный запрос к Hugging Face Router API"
+            
+            # Экранируем кавычки в промпте для JSON
+            local escaped_prompt=$(echo "$prompt" | sed 's/"/\\"/g' | sed 's/$/\\n/' | tr -d '\n' | sed 's/\\n$//')
+            
+            response=$(timeout 60 curl -s -X POST \
+                "https://router.huggingface.co/cerebras/v1/chat/completions" \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer $hf_token" \
+                -d "{
+                    \"messages\": [
+                        {
+                            \"role\": \"system\",
+                            \"content\": \"You are a helpful assistant that generates unit tests for React TypeScript components. Generate only the test code without explanations.\"
+                        },
+                        {
+                            \"role\": \"user\",
+                            \"content\": \"$escaped_prompt\"
+                        }
+                    ],
+                    \"model\": \"qwen-3-32b\",
+                    \"max_tokens\": 1500,
+                    \"temperature\": 0.1
+                }" 2>/dev/null)
+            
+            # Проверяем успешность запроса
+            if [[ -n "$response" ]] && echo "$response" | jq -e '.choices[0].message.content' >/dev/null 2>&1; then
+                api_success=true
+                log_success "Router API запрос выполнен успешно"
+                
+                # Извлекаем содержимое ответа
+                response=$(echo "$response" | jq -r '.choices[0].message.content' 2>/dev/null)
+            else
+                log_warn "Router API недоступен или вернул ошибку"
+                if [[ -n "$response" ]]; then
+                    log_error "Ответ API: $response"
+                fi
+            fi
         else
-            log_warn "Токен не найден, используем публичный API (может быть медленнее)"
-        fi
-        
-        response=$(timeout 30 curl -s -X POST \
-            # "https://api-inference.huggingface.co/models/bigcode/starcoder" \
-            "https://huggingface.co/spaces/bigcode/bigcode-playground" \
-            -H "Content-Type: application/json" \
-            $auth_header \
-            -d "{
-                \"inputs\": \"$prompt\",
-                \"parameters\": {
-                    \"max_new_tokens\": 800,
-                    \"temperature\": 0.1,
-                    \"do_sample\": true
-                }
-            }" 2>/dev/null)
-        
-        if [[ -n "$response" ]] && ! echo "$response" | grep -q "error"; then
-            api_success=true
-            log_success "API запрос выполнен успешно"
-        else
-            log_warn "API недоступен или вернул ошибку"
+            log_warn "Токен не найден, пропускаем API запрос"
         fi
     fi
     
@@ -286,21 +299,11 @@ create_test_file() {
         test_file="$dir/__tests__/$basename_no_ext.test.$extension"
     fi
     
-    # Парсим ответ от LLM
-    local parsed_content=""
+    # Используем содержимое напрямую, так как API уже возвращает готовый код
+    local parsed_content="$test_content"
     
-    # Пытаемся извлечь JSON ответ
-    if echo "$test_content" | jq -e . >/dev/null 2>&1; then
-        parsed_content=$(echo "$test_content" | jq -r '.generated_text // .choices[0].text // .' 2>/dev/null)
-    fi
-    
-    # Если парсинг не удался, используем содержимое как есть
+    # Если содержимое пустое, используем базовый шаблон
     if [[ -z "$parsed_content" ]] || [[ "$parsed_content" == "null" ]]; then
-        parsed_content="$test_content"
-    fi
-    
-    # Если все еще пусто, используем то что есть
-    if [[ -z "$parsed_content" ]]; then
         log_warn "Пустой ответ от генератора, используем базовый шаблон"
         parsed_content=$(create_basic_test_template "$original_file" "$(cat "$original_file")")
     fi
