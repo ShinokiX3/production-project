@@ -21,10 +21,10 @@ case "$branch" in
       echo "$FILES"
       
       # Опция 2: Добавить  true к каждой команде
-      npm lint:ts $FILES  true
+      npm run lint:ts $FILES  true
       
       echo "Running jest with --findRelatedTests:"
-      echo "$FILES" | xargs npm test:related || true
+      echo "$FILES" | xargs npm run test:related || true
     fi
     ;;
   *)
