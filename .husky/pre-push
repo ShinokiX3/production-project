@@ -6,7 +6,7 @@ set +e
 branch=$(git rev-parse --abbrev-ref HEAD)
 
 case "$branch" in
-  FEDS-*)
+  master*)
     echo "Running tests for branch $branch"
     
     FILES=$(git diff --name-only HEAD~1 HEAD | grep -E '\.tsx?$')
