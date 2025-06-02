@@ -17,6 +17,8 @@ interface TabsProps {
     direction?: FlexDirection;
 }
 
+// test
+
 export const Tabs = memo((props: TabsProps) => {
     const { className, tabs, selected, onTabClick, direction = 'row' } = props;
 
