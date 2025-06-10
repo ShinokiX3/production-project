@@ -1,4 +1,3 @@
-# .github/workflows/weekly-test-reports.yml
 name: Weekly Test Reports
 
 on:
@@ -20,7 +19,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
-                  fetch-depth: 0
+                  fetch-depth: 0 # Получаем всю историю для сравнения
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
@@ -36,124 +35,44 @@ jobs:
 
             - name: Get previous coverage data
               run: |
+                  # Пытаемся получить предыдущий отчет с GitHub Pages
                   curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage-summary.json > reports/previous-coverage.json || echo "{}" > reports/previous-coverage.json
 
-            - name: Check if test scripts exist
-              run: |
-                  echo "Checking package.json for test scripts..."
-                  if [ -f package.json ]; then
-                    cat package.json | grep -A 10 "scripts"
-                  else
-                    echo "package.json not found"
-                  fi
-
             - name: Run tests with coverage
-              continue-on-error: true
               run: |
-                  echo "Attempting to run tests..."
-                  
-                  # Проверяем различные варианты команд для тестов
-                  if npm run test:coverage 2>/dev/null; then
-                    echo "✅ test:coverage completed"
-                  elif npm run test -- --coverage 2>/dev/null; then
-                    echo "✅ test with --coverage completed"
-                  elif npm test 2>/dev/null; then
-                    echo "✅ basic test completed"
-                  else
-                    echo "❌ No working test command found"
-                    # Создаем фиктивные данные для демонстрации
-                    mkdir -p coverage
-                    echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > coverage/coverage-summary.json
-                  fi
-                  
-                  # Копируем отчет о покрытии (если существует)
-                  if [ -f coverage/coverage-summary.json ]; then
-                    cp coverage/coverage-summary.json reports/
-                    echo "✅ Coverage summary copied"
-                  else
-                    echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/coverage-summary.json
-                    echo "⚠️ Created empty coverage summary"
-                  fi
-                  
-                  # Копируем детальный отчет о покрытии
-                  if [ -d coverage ]; then
-                    cp -r coverage/* reports/coverage/ 2>/dev/null || echo "No coverage files to copy"
-                    echo "✅ Coverage files copied"
-                  else
-                    # Создаем базовый HTML отчет
-                    echo "<!DOCTYPE html><html><head><title>Coverage Report</title></head><body><h1>No Coverage Data Available</h1><p>Tests were not run or no coverage was generated.</p></body></html>" > reports/coverage/index.html
-                    echo "⚠️ Created placeholder coverage report"
-                  fi
+                  npm run test:coverage
+                  # Ensure coverage files are created, fail if not
+                  [ -f coverage/coverage-summary.json ] && cp coverage/coverage-summary.json reports/ || { echo "Coverage summary not found"; exit 1; }
+                  [ -d coverage ] && cp -r coverage/* reports/coverage/ || { echo "Coverage directory not found"; exit 1; }
 
             - name: Generate test report
-              continue-on-error: true
               run: |
-                  echo "Generating test report..."
-                  
-                  # Пытаемся запустить тесты с различными репортерами
-                  if npm run test:report 2>/dev/null; then
-                    echo "✅ test:report completed"
-                  elif npm test -- --reporter=html 2>/dev/null; then
-                    echo "✅ test with html reporter completed"
-                  else
-                    echo "❌ No test reporter found, creating basic report"
-                    # Создаем базовый HTML отчет
-                    cat > reports/tests/test-report.html << 'EOF'
-              <!DOCTYPE html>
-              <html>
-              <head>
-                  <title>Test Report</title>
-                  <style>
-                      body { font-family: Arial, sans-serif; margin: 20px; }
-                      .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
-                      .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; }
-                  </style>
-              </head>
-              <body>
-                  <h1>Test Report</h1>
-                  <div class="status warning">
-                      <strong>Warning:</strong> No test runner configured or tests failed to execute.
-                      <br>Please check your package.json for test scripts.
-                  </div>
-              </body>
-              </html>
-              EOF
-                    echo "⚠️ Created placeholder test report"
-                  fi
-                  
-                  # Перемещаем HTML отчет (если он был создан где-то еще)
-                  if [ -f test-report.html ]; then
-                    mv test-report.html reports/tests/
-                    echo "✅ Test report moved"
-                  fi
+                  # Запускаем тесты с HTML репортером
+                  npm run test:report
+                  # Перемещаем HTML отчет в папку reports
+                  mv test-report.html reports/tests/ || { echo "HTML report not found"; exit 1; }
 
-            - name: Create trend analysis script
+            - name: Generate coverage trend analysis
               run: |
-                  cat > generate-trend.js << 'EOL'
+                  node -e "
                   const fs = require('fs');
                   const path = require('path');
-
-                  console.log('Generating trend analysis...');
 
                   // Читаем текущее покрытие
                   let currentCoverage = {};
                   try {
-                    const data = fs.readFileSync('reports/coverage-summary.json', 'utf8');
-                    currentCoverage = JSON.parse(data);
-                    console.log('✅ Current coverage data loaded');
+                    currentCoverage = JSON.parse(fs.readFileSync('reports/coverage-summary.json', 'utf8'));
                   } catch (e) {
-                    console.log('⚠️ No current coverage data found, using empty data');
+                    console.log('No current coverage data found, using empty data');
                     currentCoverage = { total: { lines: { pct: 0 }, functions: { pct: 0 }, branches: { pct: 0 }, statements: { pct: 0 } } };
                   }
 
                   // Читаем предыдущее покрытие
                   let previousCoverage = {};
                   try {
-                    const data = fs.readFileSync('reports/previous-coverage.json', 'utf8');
-                    previousCoverage = JSON.parse(data);
-                    console.log('✅ Previous coverage data loaded');
+                    previousCoverage = JSON.parse(fs.readFileSync('reports/previous-coverage.json', 'utf8'));
                   } catch (e) {
-                    console.log('⚠️ No previous coverage data found');
+                    console.log('No previous coverage data found');
                     previousCoverage = { total: { lines: { pct: 0 }, functions: { pct: 0 }, branches: { pct: 0 }, statements: { pct: 0 } } };
                   }
 
@@ -188,122 +107,80 @@ jobs:
                     statements: current.statements - previous.statements
                   };
 
-                  // Определяем статус
-                  const hasTests = current.lines > 0 || current.functions > 0 || current.branches > 0 || current.statements > 0;
-                  const statusMessage = hasTests 
-                    ? 'Tests are running and coverage is being tracked.' 
-                    : 'No test coverage detected. Please ensure tests are properly configured.';
-
                   // Генерация HTML отчета о трендах
-                  const trendHtml = `<!DOCTYPE html>
-              <html>
-              <head>
-                <title>Test Coverage Trend Report</title>
-                <style>
-                  body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-                  .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-                  .trend-positive { color: #28a745; font-weight: bold; }
-                  .trend-negative { color: #dc3545; font-weight: bold; }
-                  .trend-neutral { color: #6c757d; }
-                  table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-                  th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                  th { background-color: #f8f9fa; font-weight: bold; }
-                  .date { font-size: 0.9em; color: #666; margin-bottom: 20px; }
-                  .status { padding: 15px; border-radius: 5px; margin: 20px 0; }
-                  .status.warning { background-color: #fff3cd; border: 1px solid #ffeaa7; }
-                  .status.success { background-color: #d4edda; border: 1px solid #c3e6cb; }
-                  .links { margin-top: 30px; }
-                  .links ul { list-style-type: none; padding: 0; }
-                  .links li { margin: 10px 0; }
-                  .links a { color: #007bff; text-decoration: none; padding: 8px 16px; border: 1px solid #007bff; border-radius: 4px; display: inline-block; }
-                  .links a:hover { background-color: #007bff; color: white; }
-                  h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-                  h2 { color: #666; margin-top: 30px; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <h1>Test Coverage Trend Report</h1>
-                  <p class="date">Generated on: ${new Date().toLocaleString()}</p>
-                  
-                  <div class="status ${hasTests ? 'success' : 'warning'}">
-                    <strong>${hasTests ? 'Status: Active' : 'Status: No Coverage'}</strong><br>
-                    ${statusMessage}
-                  </div>
-                  
-                  <table>
-                    <tr>
-                      <th>Metric</th>
-                      <th>Current</th>
-                      <th>Previous</th>
-                      <th>Trend</th>
-                    </tr>
-                    <tr>
-                      <td>Lines</td>
-                      <td>${current.lines.toFixed(2)}%</td>
-                      <td>${previous.lines.toFixed(2)}%</td>
-                      <td class="${trends.lines > 0 ? 'trend-positive' : trends.lines < 0 ? 'trend-negative' : 'trend-neutral'}">
-                        ${trends.lines > 0 ? '+' : ''}${trends.lines.toFixed(2)}%
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Functions</td>
-                      <td>${current.functions.toFixed(2)}%</td>
-                      <td>${previous.functions.toFixed(2)}%</td>
-                      <td class="${trends.functions > 0 ? 'trend-positive' : trends.functions < 0 ? 'trend-negative' : 'trend-neutral'}">
-                        ${trends.functions > 0 ? '+' : ''}${trends.functions.toFixed(2)}%
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Branches</td>
-                      <td>${current.branches.toFixed(2)}%</td>
-                      <td>${previous.branches.toFixed(2)}%</td>
-                      <td class="${trends.branches > 0 ? 'trend-positive' : trends.branches < 0 ? 'trend-negative' : 'trend-neutral'}">
-                        ${trends.branches > 0 ? '+' : ''}${trends.branches.toFixed(2)}%
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Statements</td>
-                      <td>${current.statements.toFixed(2)}%</td>
-                      <td>${previous.statements.toFixed(2)}%</td>
-                      <td class="${trends.statements > 0 ? 'trend-positive' : trends.statements < 0 ? 'trend-negative' : 'trend-neutral'}">
-                        ${trends.statements > 0 ? '+' : ''}${trends.statements.toFixed(2)}%
-                      </td>
-                    </tr>
-                  </table>
-                  
-                  <div class="links">
-                    <h2>Reports</h2>
+                  const trendHtml = \`
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <title>Coverage Trend Report</title>
+                    <style>
+                      body { font-family: Arial, sans-serif; margin: 20px; }
+                      .trend-positive { color: green; }
+                      .trend-negative { color: red; }
+                      .trend-neutral { color: gray; }
+                      table { border-collapse: collapse; width: 100%; }
+                      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                      th { background-color: #f2f2f2; }
+                      .date { font-size: 0.9em; color: #666; }
+                    </style>
+                  </head>
+                  <body>
+                    <h1>Test Coverage Trend Report</h1>
+                    <p class=\"date\">Generated on: \${new Date().toLocaleString()}</p>
+                    
+                    <table>
+                      <tr>
+                        <th>Metric</th>
+                        <th>Current</th>
+                        <th>Previous</th>
+                        <th>Trend</th>
+                      </tr>
+                      <tr>
+                        <td>Lines</td>
+                        <td>\${current.lines.toFixed(2)}%</td>
+                        <td>\${previous.lines.toFixed(2)}%</td>
+                        <td class=\"\${trends.lines > 0 ? 'trend-positive' : trends.lines < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                          \${trends.lines > 0 ? '+' : ''}\${trends.lines.toFixed(2)}%
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Functions</td>
+                        <td>\${current.functions.toFixed(2)}%</td>
+                        <td>\${previous.functions.toFixed(2)}%</td>
+                        <td class=\"\${trends.functions > 0 ? 'trend-positive' : trends.functions < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                          \${trends.functions > 0 ? '+' : ''}\${trends.functions.toFixed(2)}%
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Branches</td>
+                        <td>\${current.branches.toFixed(2)}%</td>
+                        <td>\${previous.branches.toFixed(2)}%</td>
+                        <td class=\"\${trends.branches > 0 ? 'trend-positive' : trends.branches < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                          \${trends.branches > 0 ? '+' : ''}\${trends.branches.toFixed(2)}%
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Statements</td>
+                        <td>\${current.statements.toFixed(2)}%</td>
+                        <td>\${previous.statements.toFixed(2)}%</td>
+                        <td class=\"\${trends.statements > 0 ? 'trend-positive' : trends.statements < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                          \${trends.statements > 0 ? '+' : ''}\${trends.statements.toFixed(2)}%
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <h2>Links</h2>
                     <ul>
-                      <li><a href="./coverage/index.html">📊 Detailed Coverage Report</a></li>
-                      <li><a href="./tests/test-report.html">🧪 Test Results</a></li>
+                      <li><a href=\"coverage/index.html\">Detailed Coverage Report</a></li>
+                      <li><a href=\"tests/test-report.html\">Test Results</a></li>
                     </ul>
-                  </div>
-                  
-                  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #666;">
-                    <p>This report is automatically generated by GitHub Actions. 
-                    If you see no coverage data, please ensure your project has:</p>
-                    <ul>
-                      <li>Test files (*.test.js, *.spec.js, etc.)</li>
-                      <li>Proper test scripts in package.json</li>
-                      <li>Coverage configuration (jest, vitest, etc.)</li>
-                    </ul>
-                  </div>
-                </div>
-              </body>
-              </html>`;
+                  </body>
+                  </html>
+                  \`;
 
                   fs.writeFileSync('reports/index.html', trendHtml);
-                  console.log('✅ Trend report generated successfully');
-                  EOL
-
-            - name: Generate coverage trend analysis
-              run: node generate-trend.js
-
-            - name: List generated files
-              run: |
-                  echo "📁 Generated files structure:"
-                  find reports -type f -name "*.html" -o -name "*.json" | sort
+                  console.log('Trend report generated successfully');
+                  "
 
             - name: Setup Pages
               uses: actions/configure-pages@v4
