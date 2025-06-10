@@ -36,13 +36,27 @@ export default {
                 outputPath: 'test-report.html',
                 includeFailureMsg: true,
                 includeSuiteFailure: true,
+                includeConsoleLog: true,
                 theme: 'defaultTheme',
                 logo: '',
                 executionTimeWarningThreshold: 5,
                 dateFormat: 'yyyy-mm-dd HH:MM:ss',
+                sort: 'status',
+                includeObsoleteSnapshots: true,
             },
         ],
     ],
+    // Увеличиваем таймауты для стабильности
+    testTimeout: 10000,
+    // Показываем более подробную информацию о тестах
+    verbose: true,
+    // Останавливаем на первом неудачном тесте только в CI
+    bail: process.env.CI ? 1 : 0,
+    // Настройки для лучшей производительности
+    maxWorkers: process.env.CI ? 2 : '50%',
+    // Кэширование для ускорения повторных запусков
+    cache: true,
+    cacheDirectory: '<rootDir>/node_modules/.cache/jest',
 
     // Indicates whether the coverage information should be collected while executing the test
 

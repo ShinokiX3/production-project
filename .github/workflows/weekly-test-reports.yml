@@ -12,9 +12,17 @@ permissions:
     pages: write
     id-token: write
 
+# Добавляем concurrency для избежания конфликтов
+concurrency:
+    group: 'pages'
+    cancel-in-progress: true
+
 jobs:
     test-and-report:
         runs-on: ubuntu-latest
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
 
         steps:
             - name: Checkout repository
@@ -37,99 +45,122 @@ jobs:
             - name: Get previous coverage data
               run: |
                   # Пытаемся получить предыдущий отчет с GitHub Pages
-                  curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage-summary.json > reports/previous-coverage.json || echo "{}" > reports/previous-coverage.json
+                  curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage-summary.json > reports/previous-coverage.json 2>/dev/null || echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/previous-coverage.json
+                  echo "Previous coverage file:"
+                  cat reports/previous-coverage.json
 
-            - name: Run tests with coverage and HTML report
-              continue-on-error: true
+            - name: Run tests with coverage
               run: |
-                  # Запускаем тесты с покрытием и HTML репортером одновременно
-                  npx jest --config ./config/jest/jest.config.ts --coverage --reporters=default --reporters=jest-html-reporter --coverageReporters=html --coverageReporters=json-summary --coverageDirectory=coverage
+                  echo "Running tests with coverage..."
+                  npm run test:coverage-report || true
 
-                  # Проверяем и копируем результаты
-                  echo "Checking generated files..."
+                  echo "Listing all files after test run:"
                   ls -la
 
-                  # Копируем coverage отчет если он существует
+                  # Проверяем что создалось
+                  echo "Checking for coverage directory:"
                   if [ -d "coverage" ]; then
-                    echo "Coverage directory found, copying..."
-                    cp -r coverage/* reports/coverage/ 2>/dev/null || echo "Failed to copy coverage files"
+                    echo "Coverage directory exists:"
                     ls -la coverage/
                   else
-                    echo "Coverage directory not found"
-                    # Создаем пустой coverage отчет
+                    echo "No coverage directory found"
+                  fi
+
+                  echo "Checking for test report:"
+                  if [ -f "test-report.html" ]; then
+                    echo "Test report exists"
+                    ls -la test-report.html
+                  else
+                    echo "No test report found"
+                  fi
+
+            - name: Copy reports with fallbacks
+              run: |
+                  echo "Copying reports with fallbacks..."
+
+                  # Копируем coverage отчет если он существует
+                  if [ -d "coverage" ] && [ "$(ls -A coverage)" ]; then
+                    echo "Copying coverage files..."
+                    cp -r coverage/* reports/coverage/ 2>/dev/null || echo "Failed to copy coverage files"
+                    
+                    # Копируем coverage-summary.json в корень reports
+                    if [ -f "coverage/coverage-summary.json" ]; then
+                      cp coverage/coverage-summary.json reports/
+                      echo "Coverage summary copied"
+                    fi
+                  else
+                    echo "No coverage data found, creating empty reports..."
+                    # Создаем пустые файлы для coverage
+                    mkdir -p reports/coverage
+                    echo '<html><body><h1>No Coverage Data</h1><p>Tests did not generate coverage reports. Check Jest configuration.</p></body></html>' > reports/coverage/index.html
                     echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/coverage-summary.json
                   fi
 
                   # Копируем HTML отчет о тестах если он существует
                   if [ -f "test-report.html" ]; then
-                    echo "Test report found, copying..."
+                    echo "Copying test report..."
                     cp test-report.html reports/tests/
                   else
-                    echo "Test report not found, creating placeholder..."
-                    echo '<html><body><h1>No test results available</h1><p>Tests may have failed to run or generate reports.</p></body></html>' > reports/tests/test-report.html
+                    echo "Creating placeholder test report..."
+                    echo '<!DOCTYPE html>
+                    <html>
+                    <head><title>Test Results</title></head>
+                    <body>
+                      <h1>No Test Results Available</h1>
+                      <p>Tests may have failed to run or generate reports.</p>
+                      <p>Check the workflow logs for more information.</p>
+                    </body>
+                    </html>' > reports/tests/test-report.html
                   fi
 
-                  # Копируем coverage-summary.json в reports
-                  if [ -f "coverage/coverage-summary.json" ]; then
-                    cp coverage/coverage-summary.json reports/
-                  else
-                    echo "Coverage summary not found, creating empty one..."
-                    echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/coverage-summary.json
-                  fi
-
-            - name: Debug - List all files
+            - name: Debug - List generated files
               run: |
-                  echo "=== Root directory ==="
-                  ls -la
-                  echo "=== Reports directory ==="
-                  ls -la reports/ || echo "Reports directory not found"
-                  echo "=== Reports/coverage directory ==="
-                  ls -la reports/coverage/ || echo "Reports/coverage directory not found"
-                  echo "=== Reports/tests directory ==="
-                  ls -la reports/tests/ || echo "Reports/tests directory not found"
+                  echo "=== Final reports directory structure ==="
+                  find reports -type f -exec ls -la {} \;
+                  echo ""
+                  echo "=== Content samples ==="
+                  echo "Coverage summary content:"
+                  cat reports/coverage-summary.json 2>/dev/null || echo "No coverage summary"
+                  echo ""
+                  echo "Previous coverage content:"
+                  cat reports/previous-coverage.json 2>/dev/null || echo "No previous coverage"
 
             - name: Generate coverage trend analysis
               run: |
                   node -e "
                   const fs = require('fs');
-                  const path = require('path');
 
-                  console.log('Starting trend analysis generation...');
+                  console.log('Generating trend analysis...');
 
                   // Читаем текущее покрытие
                   let currentCoverage = {};
                   try {
-                    if (fs.existsSync('reports/coverage-summary.json')) {
-                      currentCoverage = JSON.parse(fs.readFileSync('reports/coverage-summary.json', 'utf8'));
-                      console.log('Current coverage loaded:', JSON.stringify(currentCoverage.total || {}, null, 2));
-                    } else {
-                      console.log('No current coverage file found');
-                      throw new Error('No coverage file');
-                    }
+                    const currentData = fs.readFileSync('reports/coverage-summary.json', 'utf8');
+                    currentCoverage = JSON.parse(currentData);
+                    console.log('Current coverage loaded');
                   } catch (e) {
-                    console.log('Using empty current coverage data');
+                    console.log('Failed to load current coverage, using defaults');
                     currentCoverage = { total: { lines: { pct: 0 }, functions: { pct: 0 }, branches: { pct: 0 }, statements: { pct: 0 } } };
                   }
 
                   // Читаем предыдущее покрытие
                   let previousCoverage = {};
                   try {
-                    if (fs.existsSync('reports/previous-coverage.json')) {
-                      previousCoverage = JSON.parse(fs.readFileSync('reports/previous-coverage.json', 'utf8'));
-                      console.log('Previous coverage loaded:', JSON.stringify(previousCoverage.total || {}, null, 2));
-                    } else {
-                      throw new Error('No previous coverage file');
-                    }
+                    const previousData = fs.readFileSync('reports/previous-coverage.json', 'utf8');
+                    previousCoverage = JSON.parse(previousData);
+                    console.log('Previous coverage loaded');
                   } catch (e) {
-                    console.log('No previous coverage data found, using empty data');
+                    console.log('Failed to load previous coverage, using defaults');
                     previousCoverage = { total: { lines: { pct: 0 }, functions: { pct: 0 }, branches: { pct: 0 }, statements: { pct: 0 } } };
                   }
 
-                  // Функция для расчета процента покрытия
+                  // Безопасная функция для получения процента покрытия
                   function getCoveragePercent(coverage, type) {
-                    return coverage.total && coverage.total[type] 
-                      ? coverage.total[type].pct 
-                      : 0;
+                    try {
+                      return coverage?.total?.[type]?.pct || 0;
+                    } catch (e) {
+                      return 0;
+                    }
                   }
 
                   // Текущие показатели
@@ -156,111 +187,226 @@ jobs:
                     statements: current.statements - previous.statements
                   };
 
-                  console.log('Trends calculated:', trends);
+                  console.log('Current:', current);
+                  console.log('Previous:', previous);
+                  console.log('Trends:', trends);
 
                   // Генерация HTML отчета о трендах
-                  const trendHtml = \`
-                  <!DOCTYPE html>
-                  <html>
+                  const trendHtml = \`<!DOCTYPE html>
+                  <html lang=\"uk\">
                   <head>
-                    <title>Coverage Trend Report</title>
+                    <meta charset=\"UTF-8\">
+                    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+                    <title>Test Coverage Trend Report</title>
                     <style>
-                      body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-                      .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                      body { 
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+                        margin: 0; 
+                        padding: 20px; 
+                        background-color: #f8f9fa; 
+                        line-height: 1.6;
+                      }
+                      .container { 
+                        max-width: 1200px; 
+                        margin: 0 auto; 
+                        background: white; 
+                        padding: 30px; 
+                        border-radius: 12px; 
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+                      }
+                      .header {
+                        text-align: center;
+                        margin-bottom: 30px;
+                        padding-bottom: 20px;
+                        border-bottom: 2px solid #e9ecef;
+                      }
+                      .header h1 {
+                        color: #212529;
+                        margin: 0 0 10px 0;
+                        font-size: 2.5em;
+                      }
+                      .date { 
+                        font-size: 1.1em; 
+                        color: #6c757d; 
+                        margin: 0;
+                      }
                       .trend-positive { color: #28a745; font-weight: bold; }
                       .trend-negative { color: #dc3545; font-weight: bold; }
                       .trend-neutral { color: #6c757d; }
-                      table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-                      th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
-                      th { background-color: #f8f9fa; font-weight: bold; }
-                      .date { font-size: 0.9em; color: #6c757d; margin-bottom: 20px; }
-                      .links { margin-top: 30px; }
-                      .links ul { list-style-type: none; padding: 0; }
-                      .links li { margin: 10px 0; }
-                      .links a { color: #007bff; text-decoration: none; padding: 10px 15px; background: #f8f9fa; border-radius: 4px; display: inline-block; }
-                      .links a:hover { background: #e9ecef; }
-                      .status { padding: 10px; border-radius: 4px; margin: 10px 0; }
-                      .status.info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+                      .coverage-table { 
+                        border-collapse: collapse; 
+                        width: 100%; 
+                        margin: 30px 0; 
+                        font-size: 1.1em;
+                      }
+                      .coverage-table th, .coverage-table td { 
+                        border: 1px solid #dee2e6; 
+                        padding: 15px; 
+                        text-align: left; 
+                      }
+                      .coverage-table th { 
+                        background-color: #495057; 
+                        color: white;
+                        font-weight: 600; 
+                        text-align: center;
+                      }
+                      .coverage-table td {
+                        text-align: center;
+                      }
+                      .coverage-table tbody tr:nth-child(even) {
+                        background-color: #f8f9fa;
+                      }
+                      .coverage-table tbody tr:hover {
+                        background-color: #e9ecef;
+                      }
+                      .links { 
+                        margin-top: 40px; 
+                        padding: 20px;
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                      }
+                      .links h2 {
+                        margin-top: 0;
+                        color: #495057;
+                      }
+                      .links ul { 
+                        list-style-type: none; 
+                        padding: 0; 
+                      }
+                      .links li { 
+                        margin: 15px 0; 
+                      }
+                      .links a { 
+                        color: #007bff; 
+                        text-decoration: none; 
+                        padding: 12px 20px; 
+                        background: white; 
+                        border-radius: 6px; 
+                        display: inline-block;
+                        border: 1px solid #dee2e6;
+                        transition: all 0.2s;
+                        font-weight: 500;
+                      }
+                      .links a:hover { 
+                        background: #007bff;
+                        color: white;
+                        transform: translateY(-1px);
+                        box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+                      }
+                      .alert { 
+                        padding: 20px; 
+                        border-radius: 8px; 
+                        margin: 20px 0; 
+                        border-left: 4px solid;
+                      }
+                      .alert.info { 
+                        background: #e3f2fd; 
+                        border-left-color: #2196f3; 
+                        color: #0d47a1; 
+                      }
+                      .alert h3 {
+                        margin-top: 0;
+                        color: inherit;
+                      }
+                      .troubleshooting ul {
+                        margin: 15px 0;
+                        padding-left: 25px;
+                      }
+                      .troubleshooting li {
+                        margin: 8px 0;
+                      }
                     </style>
                   </head>
                   <body>
                     <div class=\"container\">
-                      <h1>Test Coverage Trend Report</h1>
-                      <p class=\"date\">Generated on: \${new Date().toLocaleString()}</p>
-                      
-                      <div class=\"status info\">
-                        <strong>Note:</strong> This report shows test coverage trends over time. 
-                        If all values show 0%, it may indicate that tests are not generating coverage reports properly.
+                      <div class=\"header\">
+                        <h1>🧪 Test Coverage Trend Report</h1>
+                        <p class=\"date\">📅 Generated: \${new Date().toLocaleString('uk-UA', { 
+                          timeZone: 'Europe/Kiev',
+                          dateStyle: 'full',
+                          timeStyle: 'medium'
+                        })}</p>
                       </div>
                       
-                      <table>
-                        <tr>
-                          <th>Metric</th>
-                          <th>Current</th>
-                          <th>Previous</th>
-                          <th>Trend</th>
-                        </tr>
-                        <tr>
-                          <td><strong>Lines</strong></td>
-                          <td>\${current.lines.toFixed(2)}%</td>
-                          <td>\${previous.lines.toFixed(2)}%</td>
-                          <td class=\"\${trends.lines > 0 ? 'trend-positive' : trends.lines < 0 ? 'trend-negative' : 'trend-neutral'}\">
-                            \${trends.lines > 0 ? '+' : ''}\${trends.lines.toFixed(2)}%
-                            \${trends.lines > 0 ? ' ↗' : trends.lines < 0 ? ' ↘' : ' →'}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td><strong>Functions</strong></td>
-                          <td>\${current.functions.toFixed(2)}%</td>
-                          <td>\${previous.functions.toFixed(2)}%</td>
-                          <td class=\"\${trends.functions > 0 ? 'trend-positive' : trends.functions < 0 ? 'trend-negative' : 'trend-neutral'}\">
-                            \${trends.functions > 0 ? '+' : ''}\${trends.functions.toFixed(2)}%
-                            \${trends.functions > 0 ? ' ↗' : trends.functions < 0 ? ' ↘' : ' →'}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td><strong>Branches</strong></td>
-                          <td>\${current.branches.toFixed(2)}%</td>
-                          <td>\${previous.branches.toFixed(2)}%</td>
-                          <td class=\"\${trends.branches > 0 ? 'trend-positive' : trends.branches < 0 ? 'trend-negative' : 'trend-neutral'}\">
-                            \${trends.branches > 0 ? '+' : ''}\${trends.branches.toFixed(2)}%
-                            \${trends.branches > 0 ? ' ↗' : trends.branches < 0 ? ' ↘' : ' →'}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td><strong>Statements</strong></td>
-                          <td>\${current.statements.toFixed(2)}%</td>
-                          <td>\${previous.statements.toFixed(2)}%</td>
-                          <td class=\"\${trends.statements > 0 ? 'trend-positive' : trends.statements < 0 ? 'trend-negative' : 'trend-neutral'}\">
-                            \${trends.statements > 0 ? '+' : ''}\${trends.statements.toFixed(2)}%
-                            \${trends.statements > 0 ? ' ↗' : trends.statements < 0 ? ' ↘' : ' →'}
-                          </td>
-                        </tr>
+                      <div class=\"alert info\">
+                        <h3>📊 About This Report</h3>
+                        <p>This report shows test coverage trends over time. Coverage data is collected automatically and compared with previous runs to show improvement or regression trends.</p>
+                      </div>
+                      
+                      <table class=\"coverage-table\">
+                        <thead>
+                          <tr>
+                            <th>📈 Metric</th>
+                            <th>Current</th>
+                            <th>Previous</th>
+                            <th>Trend</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><strong>📄 Lines</strong></td>
+                            <td>\${current.lines.toFixed(2)}%</td>
+                            <td>\${previous.lines.toFixed(2)}%</td>
+                            <td class=\"\${trends.lines > 0 ? 'trend-positive' : trends.lines < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                              \${trends.lines > 0 ? '+' : ''}\${trends.lines.toFixed(2)}%
+                              \${trends.lines > 0 ? ' 📈' : trends.lines < 0 ? ' 📉' : ' ➡️'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><strong>⚙️ Functions</strong></td>
+                            <td>\${current.functions.toFixed(2)}%</td>
+                            <td>\${previous.functions.toFixed(2)}%</td>
+                            <td class=\"\${trends.functions > 0 ? 'trend-positive' : trends.functions < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                              \${trends.functions > 0 ? '+' : ''}\${trends.functions.toFixed(2)}%
+                              \${trends.functions > 0 ? ' 📈' : trends.functions < 0 ? ' 📉' : ' ➡️'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><strong>🌿 Branches</strong></td>
+                            <td>\${current.branches.toFixed(2)}%</td>
+                            <td>\${previous.branches.toFixed(2)}%</td>
+                            <td class=\"\${trends.branches > 0 ? 'trend-positive' : trends.branches < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                              \${trends.branches > 0 ? '+' : ''}\${trends.branches.toFixed(2)}%
+                              \${trends.branches > 0 ? ' 📈' : trends.branches < 0 ? ' 📉' : ' ➡️'}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td><strong>📝 Statements</strong></td>
+                            <td>\${current.statements.toFixed(2)}%</td>
+                            <td>\${previous.statements.toFixed(2)}%</td>
+                            <td class=\"\${trends.statements > 0 ? 'trend-positive' : trends.statements < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                              \${trends.statements > 0 ? '+' : ''}\${trends.statements.toFixed(2)}%
+                              \${trends.statements > 0 ? ' 📈' : trends.statements < 0 ? ' 📉' : ' ➡️'}
+                            </td>
+                          </tr>
+                        </tbody>
                       </table>
                       
                       <div class=\"links\">
-                        <h2>Available Reports</h2>
+                        <h2>📋 Available Reports</h2>
                         <ul>
                           <li><a href=\"./coverage/index.html\">📊 Detailed Coverage Report</a></li>
                           <li><a href=\"./tests/test-report.html\">🧪 Test Results Report</a></li>
                         </ul>
                       </div>
                       
-                      <div class=\"status info\">
-                        <p><strong>Troubleshooting:</strong></p>
-                        <ul style=\"margin: 10px 0; padding-left: 20px;\">
-                          <li>If coverage shows 0%, check that your Jest configuration includes coverage collection</li>
-                          <li>Ensure your test files are being found and executed</li>
-                          <li>Verify that source files are being instrumented for coverage</li>
+                      <div class=\"alert info troubleshooting\">
+                        <h3>🔧 Troubleshooting</h3>
+                        <p>If you see 0% coverage everywhere, here are common issues:</p>
+                        <ul>
+                          <li><strong>Jest Configuration:</strong> Make sure collectCoverage is true and coverageDirectory is set</li>
+                          <li><strong>Test Files:</strong> Ensure your test files match the testMatch pattern</li>
+                          <li><strong>Source Files:</strong> Check that source files are being instrumented properly</li>
+                          <li><strong>Dependencies:</strong> Verify all testing dependencies are installed</li>
                         </ul>
+                        <p><strong>Next Steps:</strong> Check the Actions logs for specific error messages.</p>
                       </div>
                     </div>
                   </body>
-                  </html>
-                  \`;
+                  </html>\`;
 
                   fs.writeFileSync('reports/index.html', trendHtml);
-                  console.log('Trend report generated successfully at reports/index.html');
+                  console.log('✅ Trend report generated successfully');
                   "
 
             - name: Setup Pages
