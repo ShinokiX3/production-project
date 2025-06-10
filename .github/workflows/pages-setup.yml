@@ -1,0 +1,72 @@
+name: Setup GitHub Pages
+
+on:
+    workflow_dispatch: # Запуск вручную для первоначальной настройки
+
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+jobs:
+    setup-pages:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
+
+            - name: Create initial index page
+              run: |
+                  mkdir -p public
+                  cat > public/index.html << 'EOF'
+                  <!DOCTYPE html>
+                  <html lang="uk">
+                  <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Test Reports Dashboard</title>
+                    <style>
+                      body { 
+                        font-family: Arial, sans-serif; 
+                        max-width: 800px; 
+                        margin: 50px auto; 
+                        padding: 20px;
+                        background: #f5f5f5;
+                      }
+                      .container {
+                        background: white;
+                        padding: 40px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                      }
+                      h1 { color: #333; text-align: center; }
+                      p { color: #666; text-align: center; margin: 20px 0; }
+                      .status {
+                        text-align: center;
+                        padding: 20px;
+                        background: #e3f2fd;
+                        border-radius: 4px;
+                        margin: 20px 0;
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <h1>🧪 Test Reports Dashboard</h1>
+                      <div class="status">
+                        <p>📅 Автоматические отчеты будут генерироваться каждую пятницу в 21:00 по Киеву</p>
+                        <p>🔄 Первый отчет появится после первого запуска workflow</p>
+                      </div>
+                      <p>Этот сайт будет содержать еженедельные отчеты по тестированию с анализом покрытия кода и трендами.</p>
+                    </div>
+                  </body>
+                  </html>
+                  EOF
+
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: './public'
+
+            - name: Deploy to GitHub Pages
+              uses: actions/deploy-pages@v4

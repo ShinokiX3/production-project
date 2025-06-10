@@ -30,16 +30,12 @@ export default {
     reporters: [
         'default',
         [
-            'jest-html-reporter',
+            'jest-html-reporters',
             {
-                pageTitle: 'Test Report',
-                outputPath: 'test-report.html',
-                includeFailureMsg: true,
-                includeSuiteFailure: true,
-                theme: 'defaultTheme',
-                logo: '',
-                executionTimeWarningThreshold: 5,
-                dateFormat: 'yyyy-mm-dd HH:MM:ss',
+                publicPath: '<rootDir>/reports/unit',
+                filename: 'report.html',
+                openReport: false,
+                inlineSource: true,
             },
         ],
     ],

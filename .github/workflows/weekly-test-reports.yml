@@ -1,0 +1,189 @@
+# .github/workflows/weekly-test-reports.yml
+name: Weekly Test Reports
+
+on:
+    schedule:
+        # Каждую пятницу в 18:00 UTC (21:00 по Киеву)
+        - cron: '0 18 * * 5'
+    workflow_dispatch: # Возможность запустить вручную
+
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+jobs:
+    test-and-report:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # Получаем всю историю для сравнения
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Create reports directory
+              run: mkdir -p reports/coverage reports/tests
+
+            - name: Get previous coverage data
+              run: |
+                  # Пытаемся получить предыдущий отчет с GitHub Pages
+                  curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage-summary.json > reports/previous-coverage.json || echo "{}" > reports/previous-coverage.json
+
+            - name: Run tests with coverage
+              run: |
+                  npm test -- --coverage --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=html
+                  # Копируем отчет о покрытии в папку reports
+                  cp coverage/coverage-summary.json reports/
+                  cp -r coverage/* reports/coverage/
+
+            - name: Generate test report
+              run: |
+                  # Запускаем тесты с HTML репортером
+                  npm test -- --reporters=default --reporters=jest-html-reporter
+                  # Перемещаем HTML отчет в папку reports
+                  mv test-report.html reports/tests/ || echo "HTML report not found"
+
+            - name: Generate coverage trend analysis
+              run: |
+                  node -e "
+                  const fs = require('fs');
+                  const path = require('path');
+
+                  // Читаем текущее покрытие
+                  const currentCoverage = JSON.parse(fs.readFileSync('reports/coverage-summary.json', 'utf8'));
+
+                  // Читаем предыдущее покрытие
+                  let previousCoverage = {};
+                  try {
+                    previousCoverage = JSON.parse(fs.readFileSync('reports/previous-coverage.json', 'utf8'));
+                  } catch (e) {
+                    console.log('No previous coverage data found');
+                  }
+
+                  // Функция для расчета процента покрытия
+                  function getCoveragePercent(coverage, type) {
+                    return coverage.total && coverage.total[type] 
+                      ? coverage.total[type].pct 
+                      : 0;
+                  }
+
+                  // Текущие показатели
+                  const current = {
+                    lines: getCoveragePercent(currentCoverage, 'lines'),
+                    functions: getCoveragePercent(currentCoverage, 'functions'),
+                    branches: getCoveragePercent(currentCoverage, 'branches'),
+                    statements: getCoveragePercent(currentCoverage, 'statements')
+                  };
+
+                  // Предыдущие показатели
+                  const previous = {
+                    lines: getCoveragePercent(previousCoverage, 'lines'),
+                    functions: getCoveragePercent(previousCoverage, 'functions'),
+                    branches: getCoveragePercent(previousCoverage, 'branches'),
+                    statements: getCoveragePercent(previousCoverage, 'statements')
+                  };
+
+                  // Расчет трендов
+                  const trends = {
+                    lines: current.lines - previous.lines,
+                    functions: current.functions - previous.functions,
+                    branches: current.branches - previous.branches,
+                    statements: current.statements - previous.statements
+                  };
+
+                  // Генерация HTML отчета о трендах
+                  const trendHtml = \`
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <title>Coverage Trend Report</title>
+                    <style>
+                      body { font-family: Arial, sans-serif; margin: 20px; }
+                      .trend-positive { color: green; }
+                      .trend-negative { color: red; }
+                      .trend-neutral { color: gray; }
+                      table { border-collapse: collapse; width: 100%; }
+                      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                      th { background-color: #f2f2f2; }
+                      .date { font-size: 0.9em; color: #666; }
+                    </style>
+                  </head>
+                  <body>
+                    <h1>Test Coverage Trend Report</h1>
+                    <p class=\"date\">Generated on: \${new Date().toLocaleString()}</p>
+                    
+                    <table>
+                      <tr>
+                        <th>Metric</th>
+                        <th>Current</th>
+                        <th>Previous</th>
+                        <th>Trend</th>
+                      </tr>
+                      <tr>
+                        <td>Lines</td>
+                        <td>\${current.lines.toFixed(2)}%</td>
+                        <td>\${previous.lines.toFixed(2)}%</td>
+                        <td class=\"\${trends.lines > 0 ? 'trend-positive' : trends.lines < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                          \${trends.lines > 0 ? '+' : ''}\${trends.lines.toFixed(2)}%
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Functions</td>
+                        <td>\${current.functions.toFixed(2)}%</td>
+                        <td>\${previous.functions.toFixed(2)}%</td>
+                        <td class=\"\${trends.functions > 0 ? 'trend-positive' : trends.functions < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                          \${trends.functions > 0 ? '+' : ''}\${trends.functions.toFixed(2)}%
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Branches</td>
+                        <td>\${current.branches.toFixed(2)}%</td>
+                        <td>\${previous.branches.toFixed(2)}%</td>
+                        <td class=\"\${trends.branches > 0 ? 'trend-positive' : trends.branches < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                          \${trends.branches > 0 ? '+' : ''}\${trends.branches.toFixed(2)}%
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Statements</td>
+                        <td>\${current.statements.toFixed(2)}%</td>
+                        <td>\${previous.statements.toFixed(2)}%</td>
+                        <td class=\"\${trends.statements > 0 ? 'trend-positive' : trends.statements < 0 ? 'trend-negative' : 'trend-neutral'}\">
+                          \${trends.statements > 0 ? '+' : ''}\${trends.statements.toFixed(2)}%
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <h2>Links</h2>
+                    <ul>
+                      <li><a href=\"./coverage/index.html\">Detailed Coverage Report</a></li>
+                      <li><a href=\"./tests/test-report.html\">Test Results</a></li>
+                    </ul>
+                  </body>
+                  </html>
+                  \`;
+
+                  fs.writeFileSync('reports/index.html', trendHtml);
+                  console.log('Trend report generated successfully');
+                  "
+
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
+
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: './reports'
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
