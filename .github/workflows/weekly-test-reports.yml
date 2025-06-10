@@ -99,26 +99,25 @@ jobs:
                     echo "❌ No test reporter found, creating basic report"
                     # Создаем базовый HTML отчет
                     cat > reports/tests/test-report.html << 'EOF'
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Test Report</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
-        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; }
-    </style>
-</head>
-<body>
-    <h1>Test Report</h1>
-    <div class="status warning">
-        <strong>Warning:</strong> No test runner configured or tests failed to execute.
-        <br>Please check your package.json for test scripts.
-    </div>
-    <p>Report generated on: $(date)</p>
-</body>
-</html>
-EOF
+              <!DOCTYPE html>
+              <html>
+              <head>
+                  <title>Test Report</title>
+                  <style>
+                      body { font-family: Arial, sans-serif; margin: 20px; }
+                      .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
+                      .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; }
+                  </style>
+              </head>
+              <body>
+                  <h1>Test Report</h1>
+                  <div class="status warning">
+                      <strong>Warning:</strong> No test runner configured or tests failed to execute.
+                      <br>Please check your package.json for test scripts.
+                  </div>
+              </body>
+              </html>
+              EOF
                     echo "⚠️ Created placeholder test report"
                   fi
                   
@@ -128,9 +127,9 @@ EOF
                     echo "✅ Test report moved"
                   fi
 
-            - name: Generate coverage trend analysis
+            - name: Create trend analysis script
               run: |
-                  node -e "
+                  cat > generate-trend.js << 'EOL'
                   const fs = require('fs');
                   const path = require('path');
 
@@ -196,109 +195,110 @@ EOF
                     : 'No test coverage detected. Please ensure tests are properly configured.';
 
                   // Генерация HTML отчета о трендах
-                  const trendHtml = \`
-                  <!DOCTYPE html>
-                  <html>
-                  <head>
-                    <title>Test Coverage Trend Report</title>
-                    <style>
-                      body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-                      .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-                      .trend-positive { color: #28a745; font-weight: bold; }
-                      .trend-negative { color: #dc3545; font-weight: bold; }
-                      .trend-neutral { color: #6c757d; }
-                      table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-                      th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                      th { background-color: #f8f9fa; font-weight: bold; }
-                      .date { font-size: 0.9em; color: #666; margin-bottom: 20px; }
-                      .status { padding: 15px; border-radius: 5px; margin: 20px 0; }
-                      .status.warning { background-color: #fff3cd; border: 1px solid #ffeaa7; }
-                      .status.success { background-color: #d4edda; border: 1px solid #c3e6cb; }
-                      .links { margin-top: 30px; }
-                      .links ul { list-style-type: none; padding: 0; }
-                      .links li { margin: 10px 0; }
-                      .links a { color: #007bff; text-decoration: none; padding: 8px 16px; border: 1px solid #007bff; border-radius: 4px; display: inline-block; }
-                      .links a:hover { background-color: #007bff; color: white; }
-                      h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-                      h2 { color: #666; margin-top: 30px; }
-                    </style>
-                  </head>
-                  <body>
-                    <div class=\"container\">
-                      <h1>Test Coverage Trend Report</h1>
-                      <p class=\"date\">Generated on: \${new Date().toLocaleString()}</p>
-                      
-                      <div class=\"status \${hasTests ? 'success' : 'warning'}\">
-                        <strong>\${hasTests ? 'Status: Active' : 'Status: No Coverage'}</strong><br>
-                        \${statusMessage}
-                      </div>
-                      
-                      <table>
-                        <tr>
-                          <th>Metric</th>
-                          <th>Current</th>
-                          <th>Previous</th>
-                          <th>Trend</th>
-                        </tr>
-                        <tr>
-                          <td>Lines</td>
-                          <td>\${current.lines.toFixed(2)}%</td>
-                          <td>\${previous.lines.toFixed(2)}%</td>
-                          <td class=\"\${trends.lines > 0 ? 'trend-positive' : trends.lines < 0 ? 'trend-negative' : 'trend-neutral'}\">
-                            \${trends.lines > 0 ? '+' : ''}\${trends.lines.toFixed(2)}%
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Functions</td>
-                          <td>\${current.functions.toFixed(2)}%</td>
-                          <td>\${previous.functions.toFixed(2)}%</td>
-                          <td class=\"\${trends.functions > 0 ? 'trend-positive' : trends.functions < 0 ? 'trend-negative' : 'trend-neutral'}\">
-                            \${trends.functions > 0 ? '+' : ''}\${trends.functions.toFixed(2)}%
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Branches</td>
-                          <td>\${current.branches.toFixed(2)}%</td>
-                          <td>\${previous.branches.toFixed(2)}%</td>
-                          <td class=\"\${trends.branches > 0 ? 'trend-positive' : trends.branches < 0 ? 'trend-negative' : 'trend-neutral'}\">
-                            \${trends.branches > 0 ? '+' : ''}\${trends.branches.toFixed(2)}%
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Statements</td>
-                          <td>\${current.statements.toFixed(2)}%</td>
-                          <td>\${previous.statements.toFixed(2)}%</td>
-                          <td class=\"\${trends.statements > 0 ? 'trend-positive' : trends.statements < 0 ? 'trend-negative' : 'trend-neutral'}\">
-                            \${trends.statements > 0 ? '+' : ''}\${trends.statements.toFixed(2)}%
-                          </td>
-                        </tr>
-                      </table>
-                      
-                      <div class=\"links\">
-                        <h2>Reports</h2>
-                        <ul>
-                          <li><a href=\"./coverage/index.html\">📊 Detailed Coverage Report</a></li>
-                          <li><a href=\"./tests/test-report.html\">🧪 Test Results</a></li>
-                        </ul>
-                      </div>
-                      
-                      <div style=\"margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #666;\">
-                        <p>This report is automatically generated by GitHub Actions. 
-                        If you see no coverage data, please ensure your project has:</p>
-                        <ul>
-                          <li>Test files (*.test.js, *.spec.js, etc.)</li>
-                          <li>Proper test scripts in package.json</li>
-                          <li>Coverage configuration (jest, vitest, etc.)</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </body>
-                  </html>
-                  \`;
+                  const trendHtml = `<!DOCTYPE html>
+              <html>
+              <head>
+                <title>Test Coverage Trend Report</title>
+                <style>
+                  body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+                  .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  .trend-positive { color: #28a745; font-weight: bold; }
+                  .trend-negative { color: #dc3545; font-weight: bold; }
+                  .trend-neutral { color: #6c757d; }
+                  table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+                  th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                  th { background-color: #f8f9fa; font-weight: bold; }
+                  .date { font-size: 0.9em; color: #666; margin-bottom: 20px; }
+                  .status { padding: 15px; border-radius: 5px; margin: 20px 0; }
+                  .status.warning { background-color: #fff3cd; border: 1px solid #ffeaa7; }
+                  .status.success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+                  .links { margin-top: 30px; }
+                  .links ul { list-style-type: none; padding: 0; }
+                  .links li { margin: 10px 0; }
+                  .links a { color: #007bff; text-decoration: none; padding: 8px 16px; border: 1px solid #007bff; border-radius: 4px; display: inline-block; }
+                  .links a:hover { background-color: #007bff; color: white; }
+                  h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+                  h2 { color: #666; margin-top: 30px; }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <h1>Test Coverage Trend Report</h1>
+                  <p class="date">Generated on: ${new Date().toLocaleString()}</p>
+                  
+                  <div class="status ${hasTests ? 'success' : 'warning'}">
+                    <strong>${hasTests ? 'Status: Active' : 'Status: No Coverage'}</strong><br>
+                    ${statusMessage}
+                  </div>
+                  
+                  <table>
+                    <tr>
+                      <th>Metric</th>
+                      <th>Current</th>
+                      <th>Previous</th>
+                      <th>Trend</th>
+                    </tr>
+                    <tr>
+                      <td>Lines</td>
+                      <td>${current.lines.toFixed(2)}%</td>
+                      <td>${previous.lines.toFixed(2)}%</td>
+                      <td class="${trends.lines > 0 ? 'trend-positive' : trends.lines < 0 ? 'trend-negative' : 'trend-neutral'}">
+                        ${trends.lines > 0 ? '+' : ''}${trends.lines.toFixed(2)}%
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Functions</td>
+                      <td>${current.functions.toFixed(2)}%</td>
+                      <td>${previous.functions.toFixed(2)}%</td>
+                      <td class="${trends.functions > 0 ? 'trend-positive' : trends.functions < 0 ? 'trend-negative' : 'trend-neutral'}">
+                        ${trends.functions > 0 ? '+' : ''}${trends.functions.toFixed(2)}%
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Branches</td>
+                      <td>${current.branches.toFixed(2)}%</td>
+                      <td>${previous.branches.toFixed(2)}%</td>
+                      <td class="${trends.branches > 0 ? 'trend-positive' : trends.branches < 0 ? 'trend-negative' : 'trend-neutral'}">
+                        ${trends.branches > 0 ? '+' : ''}${trends.branches.toFixed(2)}%
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Statements</td>
+                      <td>${current.statements.toFixed(2)}%</td>
+                      <td>${previous.statements.toFixed(2)}%</td>
+                      <td class="${trends.statements > 0 ? 'trend-positive' : trends.statements < 0 ? 'trend-negative' : 'trend-neutral'}">
+                        ${trends.statements > 0 ? '+' : ''}${trends.statements.toFixed(2)}%
+                      </td>
+                    </tr>
+                  </table>
+                  
+                  <div class="links">
+                    <h2>Reports</h2>
+                    <ul>
+                      <li><a href="./coverage/index.html">📊 Detailed Coverage Report</a></li>
+                      <li><a href="./tests/test-report.html">🧪 Test Results</a></li>
+                    </ul>
+                  </div>
+                  
+                  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #666;">
+                    <p>This report is automatically generated by GitHub Actions. 
+                    If you see no coverage data, please ensure your project has:</p>
+                    <ul>
+                      <li>Test files (*.test.js, *.spec.js, etc.)</li>
+                      <li>Proper test scripts in package.json</li>
+                      <li>Coverage configuration (jest, vitest, etc.)</li>
+                    </ul>
+                  </div>
+                </div>
+              </body>
+              </html>`;
 
                   fs.writeFileSync('reports/index.html', trendHtml);
                   console.log('✅ Trend report generated successfully');
-                  "
+                  EOL
+
+            - name: Generate coverage trend analysis
+              run: node generate-trend.js
 
             - name: List generated files
               run: |
