@@ -31,8 +31,7 @@
     "storybook:build": "build-storybook -c ./config/.storybook",
     "prepare": "husky",
     "c:slice": "node ./scripts/createSlice/index.js",
-    "remove-feature": "ts-node ./scripts/refactoring/remove_feature.ts",
-    "postinstall": "rimraf node_modules/.cache"
+    "remove-feature": "ts-node ./scripts/refactoring/remove_feature.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": "eslint"
