@@ -41,7 +41,7 @@ jobs:
 
             - name: Run tests with coverage
               run: |
-                  npm test -- --coverage --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=html
+                  npm run test:coverage
                   # Копируем отчет о покрытии в папку reports
                   cp coverage/coverage-summary.json reports/
                   cp -r coverage/* reports/coverage/
@@ -49,7 +49,7 @@ jobs:
             - name: Generate test report
               run: |
                   # Запускаем тесты с HTML репортером
-                  npm test -- --reporters=default --reporters=jest-html-reporter
+                  npm run test:report
                   # Перемещаем HTML отчет в папку reports
                   mv test-report.html reports/tests/ || echo "HTML report not found"
 
