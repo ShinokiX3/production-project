@@ -57,7 +57,7 @@ jobs:
                   echo "Listing all files after test run:"
                   ls -la
 
-                  # Проверяем что создалось
+                  # Проверяем что создалось после тестов
                   echo "Checking for coverage directory:"
                   if [ -d "coverage" ]; then
                     echo "Coverage directory exists:"
@@ -66,9 +66,12 @@ jobs:
                     echo "No coverage directory found"
                   fi
 
-                  echo "Checking for test report:"
-                  if [ -f "test-report.html" ]; then
-                    echo "Test report exists"
+                  echo "Checking for test report (jest-html-reporters structure):"
+                  if [ -d "test-report" ]; then
+                    echo "Test report directory exists:"
+                    ls -la test-report/
+                  elif [ -f "test-report.html" ]; then
+                    echo "Test report file exists in root:"
                     ls -la test-report.html
                   else
                     echo "No test report found"
@@ -96,19 +99,53 @@ jobs:
                     echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/coverage-summary.json
                   fi
 
-                  # Копируем HTML отчет о тестах если он существует
-                  if [ -f "test-report.html" ]; then
-                    echo "Copying test report..."
+                  # Копируем HTML отчет о тестах (jest-html-reporters может создавать в разных местах)
+                  if [ -d "test-report" ] && [ -f "test-report/test-report.html" ]; then
+                    echo "Copying test report from test-report directory..."
+                    cp test-report/test-report.html reports/tests/
+                    # Копируем все дополнительные файлы если есть
+                    if [ -d "test-report/assets" ]; then
+                      mkdir -p reports/tests/assets
+                      cp -r test-report/assets/* reports/tests/assets/ 2>/dev/null || echo "No assets to copy"
+                    fi
+                  elif [ -f "test-report.html" ]; then
+                    echo "Copying test report from root directory..."
                     cp test-report.html reports/tests/
                   else
                     echo "Creating placeholder test report..."
                     echo '<!DOCTYPE html>
                     <html>
-                    <head><title>Test Results</title></head>
+                    <head>
+                        <title>Test Results</title>
+                        <meta charset="UTF-8">
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+                            .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                            h1 { color: #d73027; }
+                            .info { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 20px 0; }
+                            .steps { background: #f3e5f5; padding: 15px; border-radius: 4px; }
+                            ul { margin: 10px 0; padding-left: 25px; }
+                            li { margin: 8px 0; }
+                        </style>
+                    </head>
                     <body>
-                      <h1>No Test Results Available</h1>
-                      <p>Tests may have failed to run or generate reports.</p>
-                      <p>Check the workflow logs for more information.</p>
+                        <div class="container">
+                            <h1>🚫 No Test Results Available</h1>
+                            <div class="info">
+                                <p><strong>ℹ️ Information:</strong> Tests may have failed to run or generate reports with jest-html-reporters.</p>
+                            </div>
+                            <div class="steps">
+                                <h3>🔍 Troubleshooting Steps:</h3>
+                                <ul>
+                                    <li>Check that <code>jest-html-reporters</code> is installed: <code>npm list jest-html-reporters</code></li>
+                                    <li>Verify Jest configuration includes the correct reporter setup</li>
+                                    <li>Ensure tests are running successfully: <code>npm test</code></li>
+                                    <li>Check the GitHub Actions workflow logs for specific error messages</li>
+                                    <li>Verify the <code>publicPath</code> and <code>filename</code> configuration in Jest</li>
+                                </ul>
+                            </div>
+                            <p><strong>📝 Next Steps:</strong> Check the workflow logs for more information about why the test report was not generated.</p>
+                        </div>
                     </body>
                     </html>' > reports/tests/test-report.html
                   fi
@@ -124,6 +161,13 @@ jobs:
                   echo ""
                   echo "Previous coverage content:"
                   cat reports/previous-coverage.json 2>/dev/null || echo "No previous coverage"
+                  echo ""
+                  echo "=== Test report check ==="
+                  if [ -f "reports/tests/test-report.html" ]; then
+                    echo "Test report size: $(stat -c%s reports/tests/test-report.html) bytes"
+                    echo "Test report first 200 characters:"
+                    head -c 200 reports/tests/test-report.html
+                  fi
 
             - name: Generate coverage trend analysis
               run: |
@@ -304,6 +348,11 @@ jobs:
                         border-left-color: #2196f3; 
                         color: #0d47a1; 
                       }
+                      .alert.warning { 
+                        background: #fff3cd; 
+                        border-left-color: #ffc107; 
+                        color: #856404; 
+                      }
                       .alert h3 {
                         margin-top: 0;
                         color: inherit;
@@ -314,6 +363,11 @@ jobs:
                       }
                       .troubleshooting li {
                         margin: 8px 0;
+                      }
+                      .migration-note {
+                        background: #d1ecf1;
+                        border-left-color: #17a2b8;
+                        color: #0c5460;
                       }
                     </style>
                   </head>
@@ -331,6 +385,11 @@ jobs:
                       <div class=\"alert info\">
                         <h3>📊 About This Report</h3>
                         <p>This report shows test coverage trends over time. Coverage data is collected automatically and compared with previous runs to show improvement or regression trends.</p>
+                      </div>
+
+                      <div class=\"alert migration-note\">
+                        <h3>🔄 Updated Reporter</h3>
+                        <p>This workflow now uses <strong>jest-html-reporters</strong> instead of jest-html-reporter for better functionality and modern reporting features.</p>
                       </div>
                       
                       <table class=\"coverage-table\">
@@ -386,20 +445,22 @@ jobs:
                         <h2>📋 Available Reports</h2>
                         <ul>
                           <li><a href=\"./coverage/index.html\">📊 Detailed Coverage Report</a></li>
-                          <li><a href=\"./tests/test-report.html\">🧪 Test Results Report</a></li>
+                          <li><a href=\"./tests/test-report.html\">🧪 Test Results Report (jest-html-reporters)</a></li>
                         </ul>
                       </div>
                       
-                      <div class=\"alert info troubleshooting\">
-                        <h3>🔧 Troubleshooting</h3>
-                        <p>If you see 0% coverage everywhere, here are common issues:</p>
+                      <div class=\"alert warning troubleshooting\">
+                        <h3>🔧 Troubleshooting (jest-html-reporters)</h3>
+                        <p>If you see 0% coverage everywhere or missing test reports, check these common issues:</p>
                         <ul>
-                          <li><strong>Jest Configuration:</strong> Make sure collectCoverage is true and coverageDirectory is set</li>
+                          <li><strong>Package Installation:</strong> Ensure jest-html-reporters is installed: <code>npm list jest-html-reporters</code></li>
+                          <li><strong>Jest Configuration:</strong> Verify reporters configuration includes jest-html-reporters</li>
+                          <li><strong>Output Path:</strong> Check that publicPath and filename are correctly configured</li>
                           <li><strong>Test Files:</strong> Ensure your test files match the testMatch pattern</li>
-                          <li><strong>Source Files:</strong> Check that source files are being instrumented properly</li>
-                          <li><strong>Dependencies:</strong> Verify all testing dependencies are installed</li>
+                          <li><strong>Coverage Settings:</strong> Make sure collectCoverage is true and coverageDirectory is set</li>
+                          <li><strong>Dependencies:</strong> Verify all testing dependencies are installed and compatible</li>
                         </ul>
-                        <p><strong>Next Steps:</strong> Check the Actions logs for specific error messages.</p>
+                        <p><strong>Next Steps:</strong> Check the Actions logs for specific error messages and ensure the migration from jest-html-reporter is complete.</p>
                       </div>
                     </div>
                   </body>
