@@ -32,8 +32,10 @@ export default {
         [
             'jest-html-reporters',
             {
+                publicPath: './',
+                filename: 'test-report.html',
+                openReport: false,
                 pageTitle: 'Test Report',
-                outputPath: 'test-report.html',
                 includeFailureMsg: true,
                 includeSuiteFailure: true,
                 includeConsoleLog: true,
