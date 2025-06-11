@@ -1,3 +1,4 @@
+# .github/workflows/weekly-test-reports.yml
 name: Weekly Test Reports
 
 on:
@@ -38,11 +39,8 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Clean cache and reports directory
-              run: |
-                  echo "Cleaning cache and reports directory..."
-                  rm -rf reports/* node_modules/.cache/* 2>/dev/null || true
-                  mkdir -p reports/coverage reports/tests
+            - name: Create reports directory
+              run: mkdir -p reports/coverage reports/tests
 
             - name: Get previous coverage data
               run: |
@@ -95,15 +93,17 @@ jobs:
                     fi
                   else
                     echo "No coverage data found, creating empty reports..."
+                    # Создаем пустые файлы для coverage
                     mkdir -p reports/coverage
                     echo '<html><body><h1>No Coverage Data</h1><p>Tests did not generate coverage reports. Check Jest configuration.</p></body></html>' > reports/coverage/index.html
                     echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/coverage-summary.json
                   fi
 
-                  # Копируем HTML отчет о тестах
+                  # Копируем HTML отчет о тестах (jest-html-reporters может создавать в разных местах)
                   if [ -d "test-report" ] && [ -f "test-report/test-report.html" ]; then
                     echo "Copying test report from test-report directory..."
                     cp test-report/test-report.html reports/tests/
+                    # Копируем все дополнительные файлы если есть
                     if [ -d "test-report/assets" ]; then
                       mkdir -p reports/tests/assets
                       cp -r test-report/assets/* reports/tests/assets/ 2>/dev/null || echo "No assets to copy"
