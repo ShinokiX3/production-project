@@ -49,47 +49,6 @@ jobs:
                   echo "Previous coverage file:"
                   cat reports/previous-coverage.json
 
-            # Добавьте эти шаги в ваш workflow ПЕРЕД генерацией отчетов
-
-            - name: Force clean install (no cache)
-              run: |
-                  # Очистка npm кеша
-                  npm cache clean --force
-
-                  # Удаление node_modules и package-lock.json
-                  rm -rf node_modules package-lock.json
-
-                  # Чистая установка
-                  npm install
-
-            - name: Clear all Jest cache
-              run: |
-                  # Очистка Jest кеша
-                  npx jest --clearCache
-
-                  # Удаление всех старых отчетов
-                  rm -rf coverage/ test-report.html test-results.html reports/
-
-                  # Очистка временных файлов
-                  rm -rf .nyc_output/ junit.xml
-
-            - name: Add cache busting to reports
-              run: |
-                  # Добавляем timestamp к файлам для предотвращения кеширования
-                  TIMESTAMP=$(date +%s)
-                  echo "CACHE_BUST=$TIMESTAMP" >> $GITHUB_ENV
-
-                  # Создаем директории с timestamp
-                  mkdir -p "reports-$TIMESTAMP/coverage" "reports-$TIMESTAMP/tests"
-
-            # Также измените раздел upload artifact:
-            - name: Upload artifact with cache busting
-              uses: actions/upload-pages-artifact@v3
-              with:
-                  path: './reports'
-                  # Добавляем уникальное имя для каждого деплоя
-                  name: github-pages-${{ env.CACHE_BUST }}
-
             - name: Run tests with coverage
               run: |
                   echo "Running tests with coverage..."
