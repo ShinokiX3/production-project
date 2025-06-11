@@ -30,10 +30,10 @@ export default {
     reporters: [
         'default',
         [
-            'jest-html-reporters',
+            'jest-html-reporter',
             {
                 pageTitle: 'Test Report',
-                filename: 'test-report.html',
+                outputPath: 'test-report.html',
                 includeFailureMsg: true,
                 includeSuiteFailure: true,
                 includeConsoleLog: true,
