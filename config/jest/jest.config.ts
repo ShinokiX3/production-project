@@ -30,7 +30,7 @@ export default {
     reporters: [
         'default',
         [
-            'jest-html-reporter',
+            'jest-html-reporters',
             {
                 pageTitle: 'Test Report',
                 outputPath: 'test-report.html',
