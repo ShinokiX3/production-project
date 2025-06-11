@@ -169,6 +169,15 @@ jobs:
                     head -c 200 reports/tests/test-report.html
                   fi
 
+            - name: Force cache invalidation
+              run: |
+                  echo "Adding cache busting timestamp to reports..."
+                  echo "<!-- Generated: $(date) -->" >> reports/index.html 2>/dev/null || true
+
+                  # Добавляем уникальную метку времени в отчеты
+                  TIMESTAMP=$(date +%s)
+                  echo "Cache-busting timestamp: $TIMESTAMP"
+
             - name: Generate coverage trend analysis
               run: |
                   node -e "
