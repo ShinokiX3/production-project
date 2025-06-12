@@ -1,8 +1,7 @@
-# .github/workflows/setup-pages.yml
 name: Setup GitHub Pages
 
 on:
-    workflow_dispatch: # Запуск вручную для первоначальной настройки
+    workflow_dispatch:
 
 permissions:
     contents: read
@@ -33,7 +32,7 @@ jobs:
                   <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Production Project - Test Reports Hub</title>
+                    <title>Reports Hub</title>
                     <style>
                       * {
                         margin: 0;
@@ -376,108 +375,56 @@ jobs:
                   </head>
                   <body>
                     <div class="container">
-                      <!-- Header -->
-                      <div class="header">
-                        <span class="emoji">🚀</span>
-                        <h1>Production Project</h1>
-                        <p class="subtitle">Центр управления тестированием и отчетности</p>
-                      </div>
-
-                      <!-- Welcome Section -->
-                      <div class="welcome-section">
-                        <h2>👋 Добро пожаловать!</h2>
-                        <p class="welcome-text">
-                          Это централизованная платформа для мониторинга качества кода и результатов тестирования вашего проекта. 
-                          Здесь вы найдете актуальные данные о покрытии кода, трендах изменений и детальные отчеты о тестировании.
-                        </p>
-                        
-                        <div class="features-grid">
-                          <div class="feature-card">
-                            <span class="feature-icon">📊</span>
-                            <h3>Анализ покрытия</h3>
-                            <p>Детальная статистика покрытия кода тестами с разбивкой по файлам и функциям</p>
-                          </div>
-                          <div class="feature-card">
-                            <span class="feature-icon">📈</span>
-                            <h3>Тренды изменений</h3>
-                            <p>Отслеживание динамики изменений покрытия и качества кода во времени</p>
-                          </div>
-                          <div class="feature-card">
-                            <span class="feature-icon">🤖</span>
-                            <h3>Автоматизация</h3>
-                            <p>Автоматическое создание отчетов каждую пятницу через GitHub Actions</p>
-                          </div>
-                        </div>
-                      </div>
-
                       <!-- Reports Section -->
                       <div class="reports-section">
                         <div class="section-title">
-                          <h2>📋 Доступные отчеты</h2>
-                          <p>Выберите нужный тип отчета для детального анализа</p>
+                          <h2>📋 Available reports</h2>
+                          <p>Select the report type for analysis</p>
                         </div>
 
                         <div class="reports-grid">
+
+                          <!-- Test Coverage Reports -->
                           <div class="report-card">
                             <span class="report-icon">🧪</span>
                             <h3>Test Coverage Reports</h3>
                             <p>
-                              Комплексные отчеты о тестировании, включающие анализ покрытия кода, 
-                              тренды изменений и детальные результаты выполнения тестов. 
-                              Обновляются автоматически каждую неделю.
+                              Comprehensive testing reports including code coverage analysis, 
+                              change trends and detailed test execution results. 
+                              Updated automatically every week.
                             </p>
                             <a href="./weekly-reports/" class="report-button">
-                              Открыть отчеты
+                              Show Reports
                             </a>
                           </div>
 
-                          <!-- Placeholder для будущих отчетов -->
+                          <!-- Placeholder For Future Reports -->
                           <div class="report-card" style="opacity: 0.6; position: relative;">
                             <span class="report-icon">🔒</span>
                             <h3>Performance Reports</h3>
                             <p>
-                              Отчеты о производительности приложения, метрики загрузки 
-                              и анализ производительности компонентов. 
-                              <strong>Скоро будет доступно!</strong>
+                              Application performance reports, 
+                              load metrics and component performance analysis.
+                              <strong>Not available</strong>
                             </p>
                             <div class="report-button" style="background: #95a5a6; cursor: not-allowed;">
-                              В разработке
+                              Show Reports
                             </div>
                           </div>
                         </div>
                       </div>
 
                       <!-- Status Section -->
-                      <div class="status-section">
-                        <div class="status-badge">
-                          ✅ Система активна
-                        </div>
-                        
+                      <div class="status-section">                        
                         <div class="schedule-info">
-                          <h3>📅 Расписание автоматических обновлений</h3>
-                          <p><strong>Каждую пятницу в 21:00 по киевскому времени</strong></p>
-                          <p>Следующий автоматический запуск создаст новые отчеты о тестировании</p>
+                          <h3>📅 Automatic Update Schedule</h3>
+                          <p><strong>Every Friday at 21:00 Kyiv time</strong></p>
+                          <p>The next automatic run will create new test reports</p>
                         </div>
-
-                        <p style="margin-top: 25px; color: #666; font-size: 1.1em;">
-                          Система настроена и готова к автоматическому созданию отчетов. 
-                          Все данные обновляются через GitHub Actions и отображаются в реальном времени.
-                        </p>
-                      </div>
-
-                      <!-- Footer -->
-                      <div class="footer">
-                        <p>
-                          Создано с помощью 
-                          <a href="https://github.com/features/actions" target="_blank">GitHub Actions</a> 
-                          и 
-                          <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>
-                        </p>
                       </div>
                     </div>
 
                     <script>
-                      // Добавляем интерактивность для карточек
                       document.addEventListener('DOMContentLoaded', function() {
                         const cards = document.querySelectorAll('.report-card, .feature-card');
                         
@@ -493,7 +440,6 @@ jobs:
                           });
                         });
 
-                        // Добавляем эффект для кнопок
                         const buttons = document.querySelectorAll('.report-button');
                         buttons.forEach(button => {
                           button.addEventListener('click', function(e) {
@@ -502,7 +448,6 @@ jobs:
                               return;
                             }
                             
-                            // Создаем эффект ripple
                             const ripple = document.createElement('span');
                             const rect = this.getBoundingClientRect();
                             const size = Math.max(rect.width, rect.height);
@@ -530,7 +475,6 @@ jobs:
                           });
                         });
 
-                        // Добавляем CSS для анимации ripple
                         const style = document.createElement('style');
                         style.textContent = `
                           @keyframes ripple {
