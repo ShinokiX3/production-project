@@ -39,15 +39,26 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Create reports directory
-              run: mkdir -p reports/coverage reports/tests
-
-            - name: Get previous coverage data
+            # Скачиваем текущую версию Pages для сохранения главной страницы
+            - name: Download current Pages content
               run: |
-                  # Пытаемся получить предыдущий отчет с GitHub Pages
-                  curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage-summary.json > reports/previous-coverage.json 2>/dev/null || echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/previous-coverage.json
-                  echo "Previous coverage file:"
-                  cat reports/previous-coverage.json
+                  echo "Downloading current pages content..."
+                  mkdir -p public
+
+                  # Скачиваем главную страницу
+                  curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/ > public/index.html 2>/dev/null || echo "Failed to download main page"
+
+                  # Скачиваем coverage-summary.json для трендов
+                  curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage-summary.json > previous-coverage.json 2>/dev/null || echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > previous-coverage.json
+
+                  echo "Downloaded files:"
+                  ls -la public/ 2>/dev/null || echo "No public directory yet"
+                  ls -la previous-coverage.json 2>/dev/null || echo "No previous coverage"
+
+            - name: Create reports directory structure
+              run: |
+                  mkdir -p public/weekly-reports/coverage 
+                  mkdir -p public/weekly-reports/tests
 
             - name: Run tests with coverage
               run: |
@@ -81,32 +92,33 @@ jobs:
                     echo "No jest-html-reporters-attach directory found"
                   fi
 
-            - name: Copy reports with fallbacks
+            - name: Copy reports to correct structure
               run: |
-                  echo "Copying reports with fallbacks..."
+                  echo "Copying reports to public/weekly-reports/..."
 
                   # Копируем coverage отчет если он существует
                   if [ -d "coverage" ] && [ "$(ls -A coverage)" ]; then
                     echo "Copying coverage files..."
-                    cp -r coverage/* reports/coverage/ 2>/dev/null || echo "Failed to copy coverage files"
+                    cp -r coverage/* public/weekly-reports/coverage/ 2>/dev/null || echo "Failed to copy coverage files"
                     
-                    # Копируем coverage-summary.json в корень reports
+                    # Копируем coverage-summary.json в корень public для главной страницы
                     if [ -f "coverage/coverage-summary.json" ]; then
-                      cp coverage/coverage-summary.json reports/
+                      cp coverage/coverage-summary.json public/
+                      cp coverage/coverage-summary.json public/weekly-reports/
                       echo "Coverage summary copied"
                     fi
                   else
                     echo "No coverage data found, creating empty reports..."
                     # Создаем пустые файлы для coverage
-                    mkdir -p reports/coverage
-                    echo '<html><body><h1>No Coverage Data</h1><p>Tests did not generate coverage reports. Check Jest configuration.</p></body></html>' > reports/coverage/index.html
-                    echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/coverage-summary.json
+                    echo '<html><body><h1>No Coverage Data</h1><p>Tests did not generate coverage reports. Check Jest configuration.</p></body></html>' > public/weekly-reports/coverage/index.html
+                    echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > public/coverage-summary.json
+                    echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > public/weekly-reports/coverage-summary.json
                   fi
 
                   # Копируем jest-html-reporters отчеты если они существуют
                   if [ -f "jest_html_reporters.html" ]; then
                     echo "Copying jest-html-reporters file..."
-                    cp jest_html_reporters.html reports/tests/test-report.html
+                    cp jest_html_reporters.html public/weekly-reports/tests/test-report.html
                     echo "Jest HTML reporters file copied as test-report.html"
                   else
                     echo "Creating placeholder test report..."
@@ -118,13 +130,13 @@ jobs:
                       <p>Tests may have failed to run or generate reports.</p>
                       <p>Check the workflow logs for more information.</p>
                     </body>
-                    </html>' > reports/tests/test-report.html
+                    </html>' > public/weekly-reports/tests/test-report.html
                   fi
 
                   # Копируем папку attach если она существует
                   if [ -d "jest-html-reporters-attach" ] && [ "$(ls -A jest-html-reporters-attach)" ]; then
                     echo "Copying jest-html-reporters attach files..."
-                    cp -r jest-html-reporters-attach reports/tests/
+                    cp -r jest-html-reporters-attach public/weekly-reports/tests/
                     echo "Jest HTML reporters attach files copied"
                   else
                     echo "No jest-html-reporters-attach directory found or it's empty"
@@ -132,15 +144,15 @@ jobs:
 
             - name: Debug - List generated files
               run: |
-                  echo "=== Final reports directory structure ==="
-                  find reports -type f -exec ls -la {} \;
+                  echo "=== Final public directory structure ==="
+                  find public -type f -exec ls -la {} \;
                   echo ""
                   echo "=== Content samples ==="
                   echo "Coverage summary content:"
-                  cat reports/coverage-summary.json 2>/dev/null || echo "No coverage summary"
+                  cat public/coverage-summary.json 2>/dev/null || echo "No coverage summary"
                   echo ""
                   echo "Previous coverage content:"
-                  cat reports/previous-coverage.json 2>/dev/null || echo "No previous coverage"
+                  cat previous-coverage.json 2>/dev/null || echo "No previous coverage"
 
             - name: Generate coverage trend analysis
               run: |
@@ -152,7 +164,7 @@ jobs:
                   // Читаем текущее покрытие
                   let currentCoverage = {};
                   try {
-                    const currentData = fs.readFileSync('reports/coverage-summary.json', 'utf8');
+                    const currentData = fs.readFileSync('public/coverage-summary.json', 'utf8');
                     currentCoverage = JSON.parse(currentData);
                     console.log('Current coverage loaded');
                   } catch (e) {
@@ -163,7 +175,7 @@ jobs:
                   // Читаем предыдущее покрытие
                   let previousCoverage = {};
                   try {
-                    const previousData = fs.readFileSync('reports/previous-coverage.json', 'utf8');
+                    const previousData = fs.readFileSync('previous-coverage.json', 'utf8');
                     previousCoverage = JSON.parse(previousData);
                     console.log('Previous coverage loaded');
                   } catch (e) {
@@ -310,6 +322,17 @@ jobs:
                         transform: translateY(-1px);
                         box-shadow: 0 2px 4px rgba(0,123,255,0.3);
                       }
+                      .back-link {
+                        margin-bottom: 20px;
+                      }
+                      .back-link a {
+                        color: #6c757d;
+                        text-decoration: none;
+                        font-weight: 500;
+                      }
+                      .back-link a:hover {
+                        color: #007bff;
+                      }
                       .alert { 
                         padding: 20px; 
                         border-radius: 8px; 
@@ -336,6 +359,10 @@ jobs:
                   </head>
                   <body>
                     <div class=\"container\">
+                      <div class=\"back-link\">
+                        <a href=\"../\">← Назад к главной странице</a>
+                      </div>
+                      
                       <div class=\"header\">
                         <h1>🧪 Test Coverage Trend Report</h1>
                         <p class=\"date\">📅 Generated: \${new Date().toLocaleString('uk-UA', { 
@@ -423,9 +450,81 @@ jobs:
                   </body>
                   </html>\`;
 
-                  fs.writeFileSync('reports/index.html', trendHtml);
+                  fs.writeFileSync('public/weekly-reports/index.html', trendHtml);
                   console.log('✅ Trend report generated successfully');
                   "
+
+            - name: Ensure main page exists
+              run: |
+                  # Если главная страница не была скачана, создаем базовую версию
+                  if [ ! -f "public/index.html" ] || [ ! -s "public/index.html" ]; then
+                    echo "Creating fallback main page..."
+                    cat > public/index.html << 'EOF'
+                  <!DOCTYPE html>
+                  <html lang="uk">
+                  <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Production Project - Test Reports Hub</title>
+                    <style>
+                      body { 
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+                        margin: 0; 
+                        padding: 20px; 
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                        color: white;
+                        text-align: center;
+                      }
+                      .container { 
+                        max-width: 800px; 
+                        margin: 50px auto; 
+                        background: rgba(255,255,255,0.1);
+                        backdrop-filter: blur(10px);
+                        padding: 40px; 
+                        border-radius: 20px; 
+                      }
+                      h1 { font-size: 3em; margin-bottom: 20px; }
+                      .report-link {
+                        display: inline-block;
+                        background: rgba(255,255,255,0.2);
+                        color: white;
+                        padding: 15px 30px;
+                        margin: 10px;
+                        border-radius: 10px;
+                        text-decoration: none;
+                        transition: all 0.3s;
+                      }
+                      .report-link:hover {
+                        background: rgba(255,255,255,0.3);
+                        transform: translateY(-2px);
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <h1>🚀 Production Project</h1>
+                      <p>Центр управления тестированием и отчетности</p>
+                      <div style="margin-top: 40px;">
+                        <a href="./weekly-reports/" class="report-link">
+                          📊 Test Coverage Reports
+                        </a>
+                      </div>
+                    </div>
+                  </body>
+                  </html>
+                  EOF
+                  fi
+
+            - name: Final directory check
+              run: |
+                  echo "=== Final public directory structure ==="
+                  find public -type f | sort
+                  echo ""
+                  echo "=== Verifying key files exist ==="
+                  echo "Main page: $([ -f public/index.html ] && echo "✅" || echo "❌")"
+                  echo "Weekly reports index: $([ -f public/weekly-reports/index.html ] && echo "✅" || echo "❌")"
+                  echo "Coverage summary: $([ -f public/coverage-summary.json ] && echo "✅" || echo "❌")"
 
             - name: Setup Pages
               uses: actions/configure-pages@v4
@@ -433,8 +532,7 @@ jobs:
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
               with:
-                  path: './reports'
-                  destination: 'weekly-reports'
+                  path: './public'
 
             - name: Deploy to GitHub Pages
               id: deployment
