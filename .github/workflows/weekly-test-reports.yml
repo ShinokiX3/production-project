@@ -66,12 +66,19 @@ jobs:
                     echo "No coverage directory found"
                   fi
 
-                  echo "Checking for test report:"
-                  if [ -f "test-report.html" ]; then
-                    echo "Test report exists"
-                    ls -la test-report.html
+                  echo "Checking for jest-html-reporters files:"
+                  if [ -f "jest_html_reporters.html" ]; then
+                    echo "Jest HTML reporters main file exists"
+                    ls -la jest_html_reporters.html
                   else
-                    echo "No test report found"
+                    echo "No jest_html_reporters.html found"
+                  fi
+
+                  if [ -d "jest-html-reporters-attach" ]; then
+                    echo "Jest HTML reporters attach directory exists:"
+                    ls -la jest-html-reporters-attach/
+                  else
+                    echo "No jest-html-reporters-attach directory found"
                   fi
 
             - name: Copy reports with fallbacks
@@ -96,10 +103,14 @@ jobs:
                     echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > reports/coverage-summary.json
                   fi
 
-                  # Копируем HTML отчет о тестах если он существует
-                  if [ -f "test-report.html" ]; then
-                    echo "Copying test report..."
-                    cp test-report.html reports/tests/
+                  # Копируем jest-html-reporters отчеты если они существуют
+                  if [ -f "jest_html_reporters.html" ]; then
+                    echo "Copying jest-html-reporters main file..."
+                    cp jest_html_reporters.html reports/tests/
+                    
+                    # Переименовываем основной файл для удобства доступа
+                    cp jest_html_reporters.html reports/tests/test-report.html
+                    echo "Jest HTML reporters main file copied"
                   else
                     echo "Creating placeholder test report..."
                     echo '<!DOCTYPE html>
@@ -111,6 +122,15 @@ jobs:
                       <p>Check the workflow logs for more information.</p>
                     </body>
                     </html>' > reports/tests/test-report.html
+                  fi
+
+                  # Копируем папку attach если она существует
+                  if [ -d "jest-html-reporters-attach" ] && [ "$(ls -A jest-html-reporters-attach)" ]; then
+                    echo "Copying jest-html-reporters attach files..."
+                    cp -r jest-html-reporters-attach reports/tests/
+                    echo "Jest HTML reporters attach files copied"
+                  else
+                    echo "No jest-html-reporters-attach directory found or it's empty"
                   fi
 
             - name: Debug - List generated files
@@ -386,7 +406,8 @@ jobs:
                         <h2>📋 Available Reports</h2>
                         <ul>
                           <li><a href=\"./coverage/index.html\">📊 Detailed Coverage Report</a></li>
-                          <li><a href=\"./tests/test-report.html\">🧪 Test Results Report</a></li>
+                          <li><a href=\"./tests/test-report.html\">🧪 Test Results Report (Main)</a></li>
+                          <li><a href=\"./tests/jest_html_reporters.html\">🧪 Jest HTML Reporters (Original)</a></li>
                         </ul>
                       </div>
                       
@@ -398,6 +419,7 @@ jobs:
                           <li><strong>Test Files:</strong> Ensure your test files match the testMatch pattern</li>
                           <li><strong>Source Files:</strong> Check that source files are being instrumented properly</li>
                           <li><strong>Dependencies:</strong> Verify all testing dependencies are installed</li>
+                          <li><strong>Jest HTML Reporters:</strong> Check that jest-html-reporters is properly configured</li>
                         </ul>
                         <p><strong>Next Steps:</strong> Check the Actions logs for specific error messages.</p>
                       </div>
