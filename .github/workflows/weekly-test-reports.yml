@@ -347,7 +347,7 @@ jobs:
                       
                       <div class=\"header\">
                         <h1>🧪 Test Coverage Trend Report</h1>
-                        <p class=\"date\">📅 Generated: \${new Date().toLocaleString('en_US', { 
+                        <p class=\"date\">📅 Generated: \${new Date().toLocaleString('en-GB', { 
                           timeZone: 'Europe/Kiev',
                           dateStyle: 'full',
                           timeStyle: 'medium'
