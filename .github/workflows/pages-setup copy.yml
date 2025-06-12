@@ -1,0 +1,160 @@
+# .github/workflows/setup-pages.yml
+name: Setup GitHub Pages
+
+on:
+    workflow_dispatch: # Запуск вручную для первоначальной настройки
+
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+concurrency:
+    group: 'pages'
+    cancel-in-progress: true
+
+jobs:
+    setup-pages:
+        runs-on: ubuntu-latest
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        steps:
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
+
+            - name: Create initial index page
+              run: |
+                  mkdir -p public
+                  cat > public/index.html << 'EOF'
+                  <!DOCTYPE html>
+                  <html lang="uk">
+                  <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Test Reports Dashboard</title>
+                    <style>
+                      * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                      }
+                      body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 20px;
+                      }
+                      .container {
+                        background: white;
+                        padding: 50px;
+                        border-radius: 20px;
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                        text-align: center;
+                        max-width: 600px;
+                        width: 100%;
+                        animation: fadeInUp 0.8s ease-out;
+                      }
+                      @keyframes fadeInUp {
+                        from {
+                          opacity: 0;
+                          transform: translateY(30px);
+                        }
+                        to {
+                          opacity: 1;
+                          transform: translateY(0);
+                        }
+                      }
+                      h1 {
+                        color: #2c3e50;
+                        font-size: 2.5em;
+                        margin-bottom: 20px;
+                        font-weight: 300;
+                      }
+                      .emoji {
+                        font-size: 4em;
+                        margin-bottom: 20px;
+                        display: block;
+                      }
+                      .status {
+                        background: linear-gradient(135deg, #74b9ff, #0984e3);
+                        color: white;
+                        padding: 25px;
+                        border-radius: 15px;
+                        margin: 30px 0;
+                        box-shadow: 0 10px 25px rgba(116, 185, 255, 0.3);
+                      }
+                      .status h2 {
+                        margin-bottom: 15px;
+                        font-weight: 400;
+                      }
+                      .status p {
+                        font-size: 1.1em;
+                        line-height: 1.6;
+                        margin: 10px 0;
+                      }
+                      .info {
+                        color: #636e72;
+                        font-size: 1.1em;
+                        line-height: 1.7;
+                        margin-top: 30px;
+                      }
+                      .schedule {
+                        background: #f8f9fa;
+                        border: 2px dashed #dee2e6;
+                        padding: 20px;
+                        border-radius: 10px;
+                        margin: 20px 0;
+                        color: #495057;
+                      }
+                      .highlight {
+                        color: #e17055;
+                        font-weight: 600;
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="container">
+                      <span class="emoji">🧪</span>
+                      <h1>Test Reports Dashboard</h1>
+                      
+                      <div class="status">
+                        <h2>🚀 Система готова к работе!</h2>
+                        <p>GitHub Pages настроена и готова для автоматических отчетов</p>
+                      </div>
+                      
+                      <div class="schedule">
+                        <p><strong>📅 Расписание автоматических отчетов:</strong></p>
+                        <p class="highlight">Каждую пятницу в 21:00 по Киеву</p>
+                      </div>
+                      
+                      <div class="info">
+                        <p>Этот сайт будет автоматически обновляться с еженедельными отчетами о тестировании, включая:</p>
+                        <br>
+                        <p>📊 <strong>Анализ покрытия кода</strong></p>
+                        <p>📈 <strong>Тренды изменений</strong></p>
+                        <p>🧪 <strong>Результаты тестов</strong></p>
+                        <br>
+                        <p>Первый отчет появится после запуска тестов через GitHub Actions.</p>
+                      </div>
+                    </div>
+                  </body>
+                  </html>
+                  EOF
+
+            - name: Create coverage summary template
+              run: |
+                  echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > public/coverage-summary.json
+
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: './public'
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4

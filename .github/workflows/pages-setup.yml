@@ -24,7 +24,7 @@ jobs:
             - name: Setup Pages
               uses: actions/configure-pages@v4
 
-            - name: Create initial index page
+            - name: Create main hub page
               run: |
                   mkdir -p public
                   cat > public/index.html << 'EOF'
@@ -33,32 +33,45 @@ jobs:
                   <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Test Reports Dashboard</title>
+                    <title>Production Project - Test Reports Hub</title>
                     <style>
                       * {
                         margin: 0;
                         padding: 0;
                         box-sizing: border-box;
                       }
+
                       body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
                         min-height: 100vh;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
                         padding: 20px;
+                        color: #333;
                       }
+
                       .container {
-                        background: white;
-                        padding: 50px;
-                        border-radius: 20px;
-                        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                        text-align: center;
-                        max-width: 600px;
-                        width: 100%;
-                        animation: fadeInUp 0.8s ease-out;
+                        max-width: 1200px;
+                        margin: 0 auto;
                       }
+
+                      .header {
+                        text-align: center;
+                        color: white;
+                        margin-bottom: 50px;
+                        animation: fadeInDown 1s ease-out;
+                      }
+
+                      @keyframes fadeInDown {
+                        from {
+                          opacity: 0;
+                          transform: translateY(-30px);
+                        }
+                        to {
+                          opacity: 1;
+                          transform: translateY(0);
+                        }
+                      }
+
                       @keyframes fadeInUp {
                         from {
                           opacity: 0;
@@ -69,79 +82,467 @@ jobs:
                           transform: translateY(0);
                         }
                       }
-                      h1 {
-                        color: #2c3e50;
-                        font-size: 2.5em;
-                        margin-bottom: 20px;
-                        font-weight: 300;
+
+                      @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
                       }
-                      .emoji {
+
+                      .header h1 {
+                        font-size: 3.5em;
+                        margin-bottom: 15px;
+                        font-weight: 300;
+                        text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                      }
+
+                      .header .emoji {
                         font-size: 4em;
                         margin-bottom: 20px;
                         display: block;
+                        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
                       }
-                      .status {
+
+                      .header .subtitle {
+                        font-size: 1.3em;
+                        opacity: 0.9;
+                        font-weight: 400;
+                      }
+
+                      .welcome-section {
+                        background: rgba(255, 255, 255, 0.95);
+                        backdrop-filter: blur(10px);
+                        border-radius: 20px;
+                        padding: 40px;
+                        margin-bottom: 40px;
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                        animation: fadeInUp 1s ease-out 0.2s both;
+                      }
+
+                      .welcome-section h2 {
+                        color: #2c3e50;
+                        font-size: 2.2em;
+                        margin-bottom: 25px;
+                        text-align: center;
+                        font-weight: 400;
+                      }
+
+                      .welcome-text {
+                        font-size: 1.2em;
+                        line-height: 1.8;
+                        color: #555;
+                        text-align: center;
+                        margin-bottom: 30px;
+                      }
+
+                      .features-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                        gap: 25px;
+                        margin: 30px 0;
+                      }
+
+                      .feature-card {
+                        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                        padding: 25px;
+                        border-radius: 15px;
+                        text-align: center;
+                        border: 2px solid transparent;
+                        transition: all 0.3s ease;
+                      }
+
+                      .feature-card:hover {
+                        transform: translateY(-5px);
+                        border-color: #667eea;
+                        box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+                      }
+
+                      .feature-card .feature-icon {
+                        font-size: 2.5em;
+                        margin-bottom: 15px;
+                        display: block;
+                      }
+
+                      .feature-card h3 {
+                        color: #2c3e50;
+                        margin-bottom: 10px;
+                        font-size: 1.3em;
+                      }
+
+                      .feature-card p {
+                        color: #666;
+                        line-height: 1.6;
+                      }
+
+                      .reports-section {
+                        animation: fadeInUp 1s ease-out 0.4s both;
+                      }
+
+                      .section-title {
+                        background: rgba(255, 255, 255, 0.95);
+                        backdrop-filter: blur(10px);
+                        border-radius: 15px;
+                        padding: 30px;
+                        margin-bottom: 30px;
+                        text-align: center;
+                        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                      }
+
+                      .section-title h2 {
+                        color: #2c3e50;
+                        font-size: 2.5em;
+                        margin-bottom: 15px;
+                        font-weight: 400;
+                      }
+
+                      .section-title p {
+                        color: #666;
+                        font-size: 1.2em;
+                        line-height: 1.6;
+                      }
+
+                      .reports-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                        gap: 30px;
+                      }
+
+                      .report-card {
+                        background: rgba(255, 255, 255, 0.95);
+                        backdrop-filter: blur(10px);
+                        border-radius: 20px;
+                        padding: 40px;
+                        text-align: center;
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                        border: 2px solid transparent;
+                        position: relative;
+                        overflow: hidden;
+                      }
+
+                      .report-card::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: -100%;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+                        transition: left 0.5s;
+                      }
+
+                      .report-card:hover::before {
+                        left: 100%;
+                      }
+
+                      .report-card:hover {
+                        transform: translateY(-10px) scale(1.02);
+                        border-color: #667eea;
+                        box-shadow: 0 30px 60px rgba(102, 126, 234, 0.25);
+                      }
+
+                      .report-icon {
+                        font-size: 4em;
+                        margin-bottom: 25px;
+                        display: block;
+                        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+                      }
+
+                      .report-card h3 {
+                        color: #2c3e50;
+                        font-size: 1.8em;
+                        margin-bottom: 20px;
+                        font-weight: 500;
+                      }
+
+                      .report-card p {
+                        color: #666;
+                        font-size: 1.1em;
+                        line-height: 1.7;
+                        margin-bottom: 30px;
+                      }
+
+                      .report-button {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        color: white;
+                        padding: 15px 35px;
+                        border-radius: 50px;
+                        text-decoration: none;
+                        font-weight: 600;
+                        font-size: 1.1em;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                        position: relative;
+                        overflow: hidden;
+                      }
+
+                      .report-button::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: -100%;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                        transition: left 0.5s;
+                      }
+
+                      .report-button:hover::before {
+                        left: 100%;
+                      }
+
+                      .report-button:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+                      }
+
+                      .status-section {
+                        background: rgba(255, 255, 255, 0.95);
+                        backdrop-filter: blur(10px);
+                        border-radius: 20px;
+                        padding: 35px;
+                        margin-top: 40px;
+                        text-align: center;
+                        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+                        animation: fadeIn 1s ease-out 0.6s both;
+                      }
+
+                      .status-badge {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #00b894, #00a085);
+                        color: white;
+                        padding: 12px 25px;
+                        border-radius: 25px;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        box-shadow: 0 8px 20px rgba(0, 184, 148, 0.3);
+                      }
+
+                      .schedule-info {
                         background: linear-gradient(135deg, #74b9ff, #0984e3);
                         color: white;
                         padding: 25px;
                         border-radius: 15px;
-                        margin: 30px 0;
+                        margin: 25px 0;
                         box-shadow: 0 10px 25px rgba(116, 185, 255, 0.3);
                       }
-                      .status h2 {
+
+                      .schedule-info h3 {
                         margin-bottom: 15px;
-                        font-weight: 400;
+                        font-size: 1.3em;
                       }
-                      .status p {
+
+                      .schedule-info p {
                         font-size: 1.1em;
                         line-height: 1.6;
-                        margin: 10px 0;
                       }
-                      .info {
-                        color: #636e72;
+
+                      .footer {
+                        text-align: center;
+                        color: rgba(255, 255, 255, 0.8);
+                        margin-top: 50px;
                         font-size: 1.1em;
-                        line-height: 1.7;
-                        margin-top: 30px;
+                        animation: fadeIn 1s ease-out 0.8s both;
                       }
-                      .schedule {
-                        background: #f8f9fa;
-                        border: 2px dashed #dee2e6;
-                        padding: 20px;
-                        border-radius: 10px;
-                        margin: 20px 0;
-                        color: #495057;
-                      }
-                      .highlight {
-                        color: #e17055;
+
+                      .footer a {
+                        color: white;
+                        text-decoration: none;
                         font-weight: 600;
+                      }
+
+                      .footer a:hover {
+                        text-decoration: underline;
+                      }
+
+                      @media (max-width: 768px) {
+                        .header h1 {
+                          font-size: 2.5em;
+                        }
+                        
+                        .header .emoji {
+                          font-size: 3em;
+                        }
+                        
+                        .reports-grid {
+                          grid-template-columns: 1fr;
+                        }
+                        
+                        .report-card {
+                          padding: 30px 25px;
+                        }
                       }
                     </style>
                   </head>
                   <body>
                     <div class="container">
-                      <span class="emoji">🧪</span>
-                      <h1>Test Reports Dashboard</h1>
-                      
-                      <div class="status">
-                        <h2>🚀 Система готова к работе!</h2>
-                        <p>GitHub Pages настроена и готова для автоматических отчетов</p>
+                      <!-- Header -->
+                      <div class="header">
+                        <span class="emoji">🚀</span>
+                        <h1>Production Project</h1>
+                        <p class="subtitle">Центр управления тестированием и отчетности</p>
                       </div>
-                      
-                      <div class="schedule">
-                        <p><strong>📅 Расписание автоматических отчетов:</strong></p>
-                        <p class="highlight">Каждую пятницу в 21:00 по Киеву</p>
+
+                      <!-- Welcome Section -->
+                      <div class="welcome-section">
+                        <h2>👋 Добро пожаловать!</h2>
+                        <p class="welcome-text">
+                          Это централизованная платформа для мониторинга качества кода и результатов тестирования вашего проекта. 
+                          Здесь вы найдете актуальные данные о покрытии кода, трендах изменений и детальные отчеты о тестировании.
+                        </p>
+                        
+                        <div class="features-grid">
+                          <div class="feature-card">
+                            <span class="feature-icon">📊</span>
+                            <h3>Анализ покрытия</h3>
+                            <p>Детальная статистика покрытия кода тестами с разбивкой по файлам и функциям</p>
+                          </div>
+                          <div class="feature-card">
+                            <span class="feature-icon">📈</span>
+                            <h3>Тренды изменений</h3>
+                            <p>Отслеживание динамики изменений покрытия и качества кода во времени</p>
+                          </div>
+                          <div class="feature-card">
+                            <span class="feature-icon">🤖</span>
+                            <h3>Автоматизация</h3>
+                            <p>Автоматическое создание отчетов каждую пятницу через GitHub Actions</p>
+                          </div>
+                        </div>
                       </div>
-                      
-                      <div class="info">
-                        <p>Этот сайт будет автоматически обновляться с еженедельными отчетами о тестировании, включая:</p>
-                        <br>
-                        <p>📊 <strong>Анализ покрытия кода</strong></p>
-                        <p>📈 <strong>Тренды изменений</strong></p>
-                        <p>🧪 <strong>Результаты тестов</strong></p>
-                        <br>
-                        <p>Первый отчет появится после запуска тестов через GitHub Actions.</p>
+
+                      <!-- Reports Section -->
+                      <div class="reports-section">
+                        <div class="section-title">
+                          <h2>📋 Доступные отчеты</h2>
+                          <p>Выберите нужный тип отчета для детального анализа</p>
+                        </div>
+
+                        <div class="reports-grid">
+                          <div class="report-card">
+                            <span class="report-icon">🧪</span>
+                            <h3>Test Coverage Reports</h3>
+                            <p>
+                              Комплексные отчеты о тестировании, включающие анализ покрытия кода, 
+                              тренды изменений и детальные результаты выполнения тестов. 
+                              Обновляются автоматически каждую неделю.
+                            </p>
+                            <a href="./weekly-reports/" class="report-button">
+                              Открыть отчеты
+                            </a>
+                          </div>
+
+                          <!-- Placeholder для будущих отчетов -->
+                          <div class="report-card" style="opacity: 0.6; position: relative;">
+                            <span class="report-icon">🔒</span>
+                            <h3>Performance Reports</h3>
+                            <p>
+                              Отчеты о производительности приложения, метрики загрузки 
+                              и анализ производительности компонентов. 
+                              <strong>Скоро будет доступно!</strong>
+                            </p>
+                            <div class="report-button" style="background: #95a5a6; cursor: not-allowed;">
+                              В разработке
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Status Section -->
+                      <div class="status-section">
+                        <div class="status-badge">
+                          ✅ Система активна
+                        </div>
+                        
+                        <div class="schedule-info">
+                          <h3>📅 Расписание автоматических обновлений</h3>
+                          <p><strong>Каждую пятницу в 21:00 по киевскому времени</strong></p>
+                          <p>Следующий автоматический запуск создаст новые отчеты о тестировании</p>
+                        </div>
+
+                        <p style="margin-top: 25px; color: #666; font-size: 1.1em;">
+                          Система настроена и готова к автоматическому созданию отчетов. 
+                          Все данные обновляются через GitHub Actions и отображаются в реальном времени.
+                        </p>
+                      </div>
+
+                      <!-- Footer -->
+                      <div class="footer">
+                        <p>
+                          Создано с помощью 
+                          <a href="https://github.com/features/actions" target="_blank">GitHub Actions</a> 
+                          и 
+                          <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>
+                        </p>
                       </div>
                     </div>
+
+                    <script>
+                      // Добавляем интерактивность для карточек
+                      document.addEventListener('DOMContentLoaded', function() {
+                        const cards = document.querySelectorAll('.report-card, .feature-card');
+                        
+                        cards.forEach(card => {
+                          card.addEventListener('mouseenter', function() {
+                            this.style.transform = this.classList.contains('report-card') 
+                              ? 'translateY(-10px) scale(1.02)' 
+                              : 'translateY(-5px)';
+                          });
+                          
+                          card.addEventListener('mouseleave', function() {
+                            this.style.transform = 'translateY(0) scale(1)';
+                          });
+                        });
+
+                        // Добавляем эффект для кнопок
+                        const buttons = document.querySelectorAll('.report-button');
+                        buttons.forEach(button => {
+                          button.addEventListener('click', function(e) {
+                            if (this.textContent.includes('В разработке')) {
+                              e.preventDefault();
+                              return;
+                            }
+                            
+                            // Создаем эффект ripple
+                            const ripple = document.createElement('span');
+                            const rect = this.getBoundingClientRect();
+                            const size = Math.max(rect.width, rect.height);
+                            const x = e.clientX - rect.left - size / 2;
+                            const y = e.clientY - rect.top - size / 2;
+                            
+                            ripple.style.cssText = `
+                              position: absolute;
+                              width: ${size}px;
+                              height: ${size}px;
+                              left: ${x}px;
+                              top: ${y}px;
+                              background: rgba(255,255,255,0.3);
+                              border-radius: 50%;
+                              transform: scale(0);
+                              animation: ripple 0.6s linear;
+                              pointer-events: none;
+                            `;
+                            
+                            this.appendChild(ripple);
+                            
+                            setTimeout(() => {
+                              ripple.remove();
+                            }, 600);
+                          });
+                        });
+
+                        // Добавляем CSS для анимации ripple
+                        const style = document.createElement('style');
+                        style.textContent = `
+                          @keyframes ripple {
+                            to {
+                              transform: scale(4);
+                              opacity: 0;
+                            }
+                          }
+                        `;
+                        document.head.appendChild(style);
+                      });
+                    </script>
                   </body>
                   </html>
                   EOF
