@@ -403,7 +403,7 @@ jobs:
                         <h2>📋 Available Reports</h2>
                         <ul>
                           <li><a href=\"./coverage/index.html\">📊 Detailed Coverage Report</a></li>
-                          <li><a href=\"./tests/test-report.html\">🧪 Test Results Report</a></li>
+                          <li><a href=\"./tests/test-report.html\">🧪 Jest HTML Reporters</a></li>
                         </ul>
                       </div>
                       
