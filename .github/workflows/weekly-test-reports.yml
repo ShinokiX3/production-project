@@ -1,18 +1,15 @@
-# .github/workflows/weekly-test-reports.yml
 name: Weekly Test Reports
 
 on:
     schedule:
-        # Каждую пятницу в 18:00 UTC (21:00 по Киеву)
         - cron: '0 18 * * 5'
-    workflow_dispatch: # Возможность запустить вручную
+    workflow_dispatch:
 
 permissions:
     contents: read
     pages: write
     id-token: write
 
-# Добавляем concurrency для избежания конфликтов
 concurrency:
     group: 'pages'
     cancel-in-progress: true
@@ -28,7 +25,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
-                  fetch-depth: 0 # Получаем всю историю для сравнения
+                  fetch-depth: 0
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
@@ -39,16 +36,13 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            # Скачиваем текущую версию Pages для сохранения главной страницы
             - name: Download current Pages content
               run: |
                   echo "Downloading current pages content..."
                   mkdir -p public
 
-                  # Скачиваем главную страницу
                   curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/ > public/index.html 2>/dev/null || echo "Failed to download main page"
 
-                  # Скачиваем coverage-summary.json для трендов
                   curl -f -s https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage-summary.json > previous-coverage.json 2>/dev/null || echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > previous-coverage.json
 
                   echo "Downloaded files:"
@@ -68,7 +62,6 @@ jobs:
                   echo "Listing all files after test run:"
                   ls -la
 
-                  # Проверяем что создалось
                   echo "Checking for coverage directory:"
                   if [ -d "coverage" ]; then
                     echo "Coverage directory exists:"
@@ -96,12 +89,10 @@ jobs:
               run: |
                   echo "Copying reports to public/weekly-reports/..."
 
-                  # Копируем coverage отчет если он существует
                   if [ -d "coverage" ] && [ "$(ls -A coverage)" ]; then
                     echo "Copying coverage files..."
                     cp -r coverage/* public/weekly-reports/coverage/ 2>/dev/null || echo "Failed to copy coverage files"
                     
-                    # Копируем coverage-summary.json в корень public для главной страницы
                     if [ -f "coverage/coverage-summary.json" ]; then
                       cp coverage/coverage-summary.json public/
                       cp coverage/coverage-summary.json public/weekly-reports/
@@ -109,13 +100,11 @@ jobs:
                     fi
                   else
                     echo "No coverage data found, creating empty reports..."
-                    # Создаем пустые файлы для coverage
                     echo '<html><body><h1>No Coverage Data</h1><p>Tests did not generate coverage reports. Check Jest configuration.</p></body></html>' > public/weekly-reports/coverage/index.html
                     echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > public/coverage-summary.json
                     echo '{"total":{"lines":{"pct":0},"functions":{"pct":0},"branches":{"pct":0},"statements":{"pct":0}}}' > public/weekly-reports/coverage-summary.json
                   fi
 
-                  # Копируем jest-html-reporters отчеты если они существуют
                   if [ -f "jest_html_reporters.html" ]; then
                     echo "Copying jest-html-reporters file..."
                     cp jest_html_reporters.html public/weekly-reports/tests/test-report.html
@@ -133,7 +122,6 @@ jobs:
                     </html>' > public/weekly-reports/tests/test-report.html
                   fi
 
-                  # Копируем папку attach если она существует
                   if [ -d "jest-html-reporters-attach" ] && [ "$(ls -A jest-html-reporters-attach)" ]; then
                     echo "Copying jest-html-reporters attach files..."
                     cp -r jest-html-reporters-attach public/weekly-reports/tests/
@@ -161,7 +149,6 @@ jobs:
 
                   console.log('Generating trend analysis...');
 
-                  // Читаем текущее покрытие
                   let currentCoverage = {};
                   try {
                     const currentData = fs.readFileSync('public/coverage-summary.json', 'utf8');
@@ -172,7 +159,6 @@ jobs:
                     currentCoverage = { total: { lines: { pct: 0 }, functions: { pct: 0 }, branches: { pct: 0 }, statements: { pct: 0 } } };
                   }
 
-                  // Читаем предыдущее покрытие
                   let previousCoverage = {};
                   try {
                     const previousData = fs.readFileSync('previous-coverage.json', 'utf8');
@@ -183,7 +169,6 @@ jobs:
                     previousCoverage = { total: { lines: { pct: 0 }, functions: { pct: 0 }, branches: { pct: 0 }, statements: { pct: 0 } } };
                   }
 
-                  // Безопасная функция для получения процента покрытия
                   function getCoveragePercent(coverage, type) {
                     try {
                       return coverage?.total?.[type]?.pct || 0;
@@ -192,7 +177,6 @@ jobs:
                     }
                   }
 
-                  // Текущие показатели
                   const current = {
                     lines: getCoveragePercent(currentCoverage, 'lines'),
                     functions: getCoveragePercent(currentCoverage, 'functions'),
@@ -200,7 +184,6 @@ jobs:
                     statements: getCoveragePercent(currentCoverage, 'statements')
                   };
 
-                  // Предыдущие показатели
                   const previous = {
                     lines: getCoveragePercent(previousCoverage, 'lines'),
                     functions: getCoveragePercent(previousCoverage, 'functions'),
@@ -208,7 +191,6 @@ jobs:
                     statements: getCoveragePercent(previousCoverage, 'statements')
                   };
 
-                  // Расчет трендов
                   const trends = {
                     lines: current.lines - previous.lines,
                     functions: current.functions - previous.functions,
@@ -220,7 +202,7 @@ jobs:
                   console.log('Previous:', previous);
                   console.log('Trends:', trends);
 
-                  // Генерация HTML отчета о трендах
+                  // HTML Trend Generation
                   const trendHtml = \`<!DOCTYPE html>
                   <html lang=\"uk\">
                   <head>
@@ -360,12 +342,12 @@ jobs:
                   <body>
                     <div class=\"container\">
                       <div class=\"back-link\">
-                        <a href=\"../\">← Назад к главной странице</a>
+                        <a href=\"../\">← Back to Main Page</a>
                       </div>
                       
                       <div class=\"header\">
                         <h1>🧪 Test Coverage Trend Report</h1>
-                        <p class=\"date\">📅 Generated: \${new Date().toLocaleString('uk-UA', { 
+                        <p class=\"date\">📅 Generated: \${new Date().toLocaleString('en_GB', { 
                           timeZone: 'Europe/Kiev',
                           dateStyle: 'full',
                           timeStyle: 'medium'
@@ -456,7 +438,6 @@ jobs:
 
             - name: Ensure main page exists
               run: |
-                  # Если главная страница не была скачана, создаем базовую версию
                   if [ ! -f "public/index.html" ] || [ ! -s "public/index.html" ]; then
                     echo "Creating fallback main page..."
                     cat > public/index.html << 'EOF'
@@ -465,7 +446,7 @@ jobs:
                   <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Production Project - Test Reports Hub</title>
+                    <title>Reports Hub</title>
                     <style>
                       body { 
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
@@ -503,8 +484,8 @@ jobs:
                   </head>
                   <body>
                     <div class="container">
-                      <h1>🚀 Production Project</h1>
-                      <p>Центр управления тестированием и отчетности</p>
+                      <h1>🚀 App Menu</h1>
+                      <p>Test Management and Reporting Center</p>
                       <div style="margin-top: 40px;">
                         <a href="./weekly-reports/" class="report-link">
                           📊 Test Coverage Reports
