@@ -105,12 +105,9 @@ jobs:
 
                   # Копируем jest-html-reporters отчеты если они существуют
                   if [ -f "jest_html_reporters.html" ]; then
-                    echo "Copying jest-html-reporters main file..."
-                    cp jest_html_reporters.html reports/tests/
-                    
-                    # Переименовываем основной файл для удобства доступа
+                    echo "Copying jest-html-reporters file..."
                     cp jest_html_reporters.html reports/tests/test-report.html
-                    echo "Jest HTML reporters main file copied"
+                    echo "Jest HTML reporters file copied as test-report.html"
                   else
                     echo "Creating placeholder test report..."
                     echo '<!DOCTYPE html>
@@ -406,8 +403,7 @@ jobs:
                         <h2>📋 Available Reports</h2>
                         <ul>
                           <li><a href=\"./coverage/index.html\">📊 Detailed Coverage Report</a></li>
-                          <li><a href=\"./tests/test-report.html\">🧪 Test Results Report (Main)</a></li>
-                          <li><a href=\"./tests/jest_html_reporters.html\">🧪 Jest HTML Reporters (Original)</a></li>
+                          <li><a href=\"./tests/test-report.html\">🧪 Test Results Report</a></li>
                         </ul>
                       </div>
                       
